@@ -15,7 +15,7 @@ def main():
         options, args = getopt.getopt(sys.argv[1:], 'p:')
         port_selection = filter(lambda x: "-p" in x, options)
         if len(port_selection) > 0:
-            port = port_selection[0][1]
+            port = int(port_selection[0][1])
     except (getopt.GetoptError, IndexError):
         usage()
         return
