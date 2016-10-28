@@ -20,6 +20,11 @@ def main():
         usage()
         return
 
+    handler = SimpleHTTPServer.SimpleHTTPRequestHandler # TODO make actual request handler
+    server = SocketServer.TCPServer((host, port), handler)
+
+    server.serve_forever()
+
     return
 
 def usage():
