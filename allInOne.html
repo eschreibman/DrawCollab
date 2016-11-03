@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Let's Draw!</title>
+        <style media="screen" type="text/css">
+        #canvas {
+            background-color: white;
+            border: 2px dashed #eaeaea;
+            margin-left: 10px;
+            margin-top: 5px;
+            height: 400px;
+            width: 400px;
+        }
+        </style>
+    </head>
+    <body>
+        
+        <h1>My Web Page</h1>
+
+        <p id="demo">A Paragraph</p>
+
+        <button type="button" onclick="myFunction()">Try it</button>
+    	Draw here ->
+        <canvas id="canvas" width="300" height="200">
+            This text is displayed if your browser does not support HTML5 Canvas.
+        </canvas>
+        
+        <script type='text/javascript' src='canvasScript.js'>
+        </script>
+        <script>
+        function myFunction() {
+            document.getElementById("demo").innerHTML = "Paragraph changed.";
+        }
+        </script>
+
+        <br>
+        <button onclick="clearall()">Clear Canvas</button> </br>
+        
+    </body>
+</html>
