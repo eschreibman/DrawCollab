@@ -1,12 +1,13 @@
-import socket, select, pickle
+import sys, socket, select, pickle
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 print 'Socket created'
-server.bind(('', 9070))
+server.bind(('', 9071))
 print 'Socket bind complete'
 server.listen(5)
 print "Socket now listening"
 
+posBoard = "[1]"
 clients = []
 while True:
     Connections, wlist, xlist = select.select([server], [], [], 0.05)
@@ -22,13 +23,23 @@ while True:
         pass
     else:
         for clientInList in clientsList:
-            data = clientInList.recv(1024)
+            dataRec = clientInList.recv(1024)
             #data = pickle.loads(data)
-            if(data == "I'm logged"):
-                print(data)
-                data = "Welcome"
+            print "Got: "
+            print dataRec
+            if(dataRec == "New User"):
+                #print dataRec 
+                dataSend = "Welcome. Use 'wasd' to move"
                 #data = pickle.dumps(data)
-                clientInList.send(data)
+                clientInList.send(dataSend)
+            if(dataRec == "Updated board"):
+                newBoard = clientInList.recv(1024)
+                print(newBoard)
+                dataSend = "New board"
+                #data = pickle.dumps(data)
+                clientInList.send(dataSend)
+                clientInList.send(newBoard)
+                
 
 clientInList.close()
 server.close()
