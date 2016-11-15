@@ -23,19 +23,17 @@ def main():
     host = "localhost" #socket.gethostname()
 
     s.bind((host, port))
-    f = open('allInOne.html', 'rb')
     s.listen(5)
 
     while True:
         c, addr = s.accept()
         print("Accepted a client")
         c.recv(1000)
-        c.send("HTTP/1.1 200 OK \n Content-type:text/html \n\n")
-        data = f.read()
-        c.send(data)
-
-        f.seek(0,0)    
-        c.close()
+        c.send("Welcome\n")
+    
+        while True:
+            print c.recv(1000)
+        #c.close()
 
 def usage():
     print "-p PORT_NUMBER, port to run server on (defaults to 80)"
