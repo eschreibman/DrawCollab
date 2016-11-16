@@ -65,6 +65,8 @@ class board:
 		return string
 
 
+
+
 #################################  CLASSES END  ##############################################
 
 Height = 5
@@ -92,6 +94,13 @@ def posDelta(dir):
 		p.updatePos(0, -1)
 	return p
 
+def stringToBoardPrint(string):
+	for i in range(len(string)):
+		if(string[i] == '_' or string[i] == "^" or string[i] == " "):
+			sys.stdout.write(string[i])
+		elif(string[i] == "]"):
+			print
+
 def main():
 	server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	print "Socket created"
@@ -99,6 +108,7 @@ def main():
 	print "Socket connected"
 	canvas = board(Width, Height)
 	boardString = canvas.boardToString()
+	stringToBoardPrint(boardString);
 	while True:
 		dataString = "New User"
 		dataSend = protocol_message(protocol_message.TYPE_NEW_USER, len(dataString), dataString)
