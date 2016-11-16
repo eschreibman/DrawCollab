@@ -8,13 +8,17 @@ class protocol_message:
         self.length = length
         self.message = message
 
-    def __init__(self, collapsed_message):
-        self.type = ord(collapsed_message[0])
-        self.length = ord(collapsed_message[1])
-        self.message = collapsed_message[2:]
+    @staticmethod
+    def message_from_collapsed(collapsed_message):
+        type = ord(collapsed_message[0])
+        length = ord(collapsed_message[1])
+        message = collapsed_message[2:]
+        return protocol_message(type, length, message)
 
 
     def collapsed(self):
-        collapsed_message[0] = chr(self.type)
-        collapsed_message[1] = chr(self.length)
+        collapsed_message = ""
+        collapsed_message +=  chr(self.type)
+        collapsed_message += chr(self.length)
         collapsed_message = collapsed_message + self.message
+        return collapsed_message
