@@ -1,4 +1,5 @@
 import sys, socket, pickle, getch
+from protocol_message import protocol_message
 
 #have to do pip install py-getch
 
@@ -99,9 +100,10 @@ def main():
 	canvas = board(Width, Height)
 	boardString = canvas.boardToString()
 	while True:
-		dataSend = "New User"
+		dataString = "New User"
+		dataSend = protocol_message(protocol_message.TYPE_NEW_USER, len(dataString), dataString)
 		#data = pickle.dumps(data)
-		server.send(dataSend)
+		server.send(dataSend.collapsed())
 		dataRec = server.recv(1024)
 		print dataRec 
 		if(dataRec == "Welcome. Use 'wasd' to move"):

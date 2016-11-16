@@ -1,4 +1,5 @@
 import sys, socket, select, pickle
+from protocol_message import protocol_message
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 print 'Socket created'
@@ -27,7 +28,9 @@ while True:
             #data = pickle.loads(data)
             print "Got: "
             print dataRec
-            if(dataRec == "New User"):
+            message = protocol_message.message_from_collapsed(dataRec)
+            if(message.type == protocol_message.TYPE_NEW_USER):
+                print "In new user"
                 #print dataRec 
                 dataSend = "Welcome. Use 'wasd' to move"
                 #data = pickle.dumps(data)
