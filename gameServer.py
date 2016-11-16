@@ -1,4 +1,4 @@
-import sys, socket, select, pickle
+import sys, socket, select
 from protocol_message import protocol_message
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -25,21 +25,17 @@ while True:
     else:
         for clientInList in clientsList:
             dataRec = clientInList.recv(1024)
-            #data = pickle.loads(data)
             print "Got: "
             print dataRec
             message_rec = protocol_message.message_from_collapsed(dataRec)
             if(message_rec.type == protocol_message.TYPE_NEW_USER):
-                #print dataRec 
                 dataSend = "Welcome. Use 'wasd' to move"
                 message_send = protocol_message(protocol_message.TYPE_WELCOME, len(dataSend), dataSend)
-                #data = pickle.dumps(data)
                 clientInList.send(message_send.collapsed())
             if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
                 print(message_rec.message)
                 dataSend = "New board"
                 message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, len(dataSend), dataSend)
-                #data = pickle.dumps(data)
                 clientInList.send(message_send.collapsed())
                 
 
