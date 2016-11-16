@@ -28,20 +28,19 @@ while True:
             #data = pickle.loads(data)
             print "Got: "
             print dataRec
-            message = protocol_message.message_from_collapsed(dataRec)
-            if(message.type == protocol_message.TYPE_NEW_USER):
-                print "In new user"
+            message_rec = protocol_message.message_from_collapsed(dataRec)
+            if(message_rec.type == protocol_message.TYPE_NEW_USER):
                 #print dataRec 
                 dataSend = "Welcome. Use 'wasd' to move"
+                message_send = protocol_message(protocol_message.TYPE_WELCOME, len(dataSend), dataSend)
                 #data = pickle.dumps(data)
-                clientInList.send(dataSend)
-            if(dataRec == "Updated board"):
-                newBoard = clientInList.recv(1024)
-                print(newBoard)
+                clientInList.send(message_send.collapsed())
+            if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
+                print(message_rec.message)
                 dataSend = "New board"
+                message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, len(dataSend), dataSend)
                 #data = pickle.dumps(data)
-                clientInList.send(dataSend)
-                clientInList.send(newBoard)
+                clientInList.send(message_send.collapsed())
                 
 
 clientInList.close()

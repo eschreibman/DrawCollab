@@ -1,7 +1,8 @@
 class protocol_message:
 
     TYPE_NEW_USER = 0
-    TYPE_UPDATE_BOARD = 1
+    TYPE_WELCOME = 1
+    TYPE_UPDATE_BOARD = 2
 
     def __init__(self, type, length, message):
         self.type = type

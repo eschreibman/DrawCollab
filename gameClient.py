@@ -105,11 +105,12 @@ def main():
 		#data = pickle.dumps(data)
 		server.send(dataSend.collapsed())
 		dataRec = server.recv(1024)
-		print dataRec 
-		if(dataRec == "Welcome. Use 'wasd' to move"):
+		print "Data rec: " + dataRec 
+		message_rec = protocol_message.message_from_collapsed(dataRec)
+		if(message_rec.type == protocol_message.TYPE_WELCOME):
 			#data = pickle.loads(data)
-			server.send("Updated board")
-			server.send(boardString)
+			message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, len(boardString), boardString)
+			server.send(message_send.collapsed())
 			dataRec = server.recv(1024)
 			print(dataRec)
 			dataRec = server.recv(1024)
