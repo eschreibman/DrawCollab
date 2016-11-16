@@ -113,8 +113,6 @@ def main():
 			server.send(message_send.collapsed())
 			dataRec = server.recv(1024)
 			print(dataRec)
-			dataRec = server.recv(1024)
-			print(dataRec)
 			break
 
 def main2():
