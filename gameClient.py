@@ -124,17 +124,6 @@ def main():
 		server.send(message_send.collapsed())
 		
 
-def main2():
-	#canvas = board(Width, Height)
-	#canvas.printBoard()
-	while True:
-		key = getInput()
-		if(key == "w" or key == "s" or key == "a" or key == "d"):
-			newPos = posDelta(key)
-			canvas.moveUser(newPos)
-		canvas.printBoard()
-
-
 
 #when the program is run, call the above "main" function
 if __name__ == "__main__": main()
