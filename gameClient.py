@@ -99,12 +99,11 @@ def main():
 	print "Socket connected"
 	canvas = board(Width, Height)
 	boardString = canvas.boardToString()
+	dataString = "New User"
+	dataSend = protocol_message(protocol_message.TYPE_NEW_USER, len(dataString), dataString)
+	server.send(dataSend.collapsed())
 	while True:
-		dataString = "New User"
-		dataSend = protocol_message(protocol_message.TYPE_NEW_USER, len(dataString), dataString)
-		#data = pickle.dumps(data)
-		server.send(dataSend.collapsed())
-		dataRec = server.recv(1024)
+		'''dataRec = server.recv(1024)
 		print "Data rec: " + dataRec 
 		message_rec = protocol_message.message_from_collapsed(dataRec)
 		if(message_rec.type == protocol_message.TYPE_WELCOME):
@@ -114,6 +113,16 @@ def main():
 			dataRec = server.recv(1024)
 			print(dataRec)
 			break
+		'''
+		key = getInput()
+                if(key == "w" or key == "s" or key == "a" or key == "d"):
+                        newPos = posDelta(key)
+                        canvas.moveUser(newPos)
+                canvas.printBoard()
+		boardString = canvas.boardToString()
+		message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, len(boardString), boardString)
+		server.send(message_send.collapsed())
+		
 
 def main2():
 	#canvas = board(Width, Height)
