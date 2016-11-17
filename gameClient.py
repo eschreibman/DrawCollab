@@ -98,6 +98,6 @@ def shutdown_client():
 	curses.endwin()
 
 #when the program is run, call the above "main" function
-if __name__ == "__main__": main2()
-	#curses.wrapper(main)
+if __name__ == "__main__":
+	curses.wrapper(main)
 
