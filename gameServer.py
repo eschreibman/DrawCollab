@@ -1,5 +1,6 @@
 import sys, socket, select
 from protocol_message import protocol_message
+from drawing_board import board
 
 def notify_all_clients(clients, message):
     print("Notifying all clients")
