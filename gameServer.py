@@ -12,6 +12,7 @@ print 'Socket created'
 server.bind(('', 9071))
 print 'Socket bind complete'
 server.listen(5)
+
 print "Socket now listening"
     
 posBoard = "[1]"
@@ -47,5 +48,8 @@ while True:
                 message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, len(dataSend), dataSend)
                 clientInList.send(message_send.collapsed())
                 notify_all_clients(clients, message_send)
+            if(message_rec.type == protocol_message.SENTINEL):
+                clients.remove(clientInList)
+                # TODO add this client to a waiting to be reconnected list
 clientInList.close()
 server.close()
