@@ -43,7 +43,7 @@ class board:
             self.userPosition.y = 0
 
         #update user position on board
-        self.theboard[self.userPosition.x][self.userPosition.y] = "^"
+        self.theboard[self.userPosition.x][self.userPosition.y] = self.user
     
     def boardToString(self):
         string = ""
@@ -62,11 +62,13 @@ class board:
         if(slen < self.width * self.height):
             return -1
         k = 0
-        for i in range(canvas.height):
-                for j in range(canvas.width):
+        for i in range(self.height):
+                for j in range(self.width):
+                        #don't include the delimiting characters
                         while(str[k] == "[" or str[k] == "," or str[k] == "]"):
                                 k += 1
                         self.theboard[i][j] = str[k]
+                        k += 1
         return 0
 
 
