@@ -53,7 +53,7 @@ while True:
             print dataRec
             message_rec = protocol_message.message_from_collapsed(dataRec)
             if(message_rec.type == protocol_message.TYPE_NEW_USER):
-                dataSend = "Welcome. Use 'wasd' to move"
+                dataSend = protocol_message.construct_welcome_message_data(0, '*')
                 message_send = protocol_message(protocol_message.TYPE_WELCOME, len(dataSend), dataSend)
                 clientInList.send(message_send.collapsed())
             if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):

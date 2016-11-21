@@ -30,3 +30,25 @@ class protocol_message:
                 collapsed_message += chr(self.length)
                 collapsed_message = collapsed_message + self.message
                 return collapsed_message
+
+
+        @staticmethod
+        def construct_welcome_message_data(user_id, user_token):
+                welcome = ""
+                welcome += chr(user_id)
+                welcome += user_token
+                return welcome
+
+
+        def welcome_message_user_id(self):
+                if self.type != protocol_message.TYPE_WELCOME:
+                        Exception.throw
+                        #TODO make more specific exception
+
+                return self.message[0]
+
+        def welcome_message_user_token(self):
+                if self.type != protocol_message.TYPE_WELCOME:
+                        Exception.throw
+
+                return self.message[1]

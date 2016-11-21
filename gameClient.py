@@ -98,6 +98,8 @@ def main(stdscr):
                                 #stdscr.addstr(1,0, "in item is server")
                                 dataRec = server.recv(1024)
                                 message_rec = protocol_message.message_from_collapsed(dataRec)
+                                if (message_rec.type == protocol_message.TYPE_WELCOME):
+                                        canvas.update_user_token(message_rec.welcome_message_user_token())
                                 #stdscr.addstr(2,0, message_rec.message)
 
                 key = getInput(stdscr)

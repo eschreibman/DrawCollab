@@ -1,11 +1,13 @@
 import sys
 from position_class import position
 class board:
+        
 	def __init__(self, w, h):
 		self.width = w
 		self.height = h
 		self.theboard = [['_' for x in range(w)] for y in range(h)]
-		self.theboard[0][0] = "^"
+                self.user_token = '^'
+		self.theboard[0][0] = self.user_token
 		self.userPosition = position(0, 0)
 
 	def printBoard(self):
@@ -35,7 +37,7 @@ class board:
 			self.userPosition.y = 0
 
 		#update user position on board
-		self.theboard[self.userPosition.x][self.userPosition.y] = "^"
+		self.theboard[self.userPosition.x][self.userPosition.y] = self.user_token
 	
 	def boardToString(self):
 		string = ""
@@ -48,3 +50,5 @@ class board:
 			string += "]"
 		return string
 
+        def update_user_token(self, user_token):
+                self.user_token = user_token
