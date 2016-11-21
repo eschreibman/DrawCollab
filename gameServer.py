@@ -1,4 +1,4 @@
-import sys, socket, select
+import sys, socket, select, getopt
 from protocol_message import protocol_message
 from drawing_board import board
 
@@ -7,9 +7,24 @@ def notify_all_clients(clients, message):
     for client in clients:
         client.send(message.collapsed())
 
+def usage():
+    print "-p PORT_NUMBER, port to run server on (defaults to 9071)"
+
+
+port = 9071
+    
+try:
+    options, args = getopt.getopt(sys.argv[1:], 'p:')
+    port_selection = filter(lambda x: "-p" in x, options)
+    if len(port_selection) > 0:
+        port = int(port_selection[0][1])
+except (getopt.GetoptError, IndexError):
+    usage()
+    exit()
+
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 print 'Socket created'
-server.bind(('', 9071))
+server.bind(('', port))
 print 'Socket bind complete'
 server.listen(5)
 

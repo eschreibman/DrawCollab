@@ -1,4 +1,4 @@
-import sys, socket, getch, select, time
+import sys, socket, getch, select, time, getopt
 from protocol_message import protocol_message
 from drawing_board import board, position
 import curses
@@ -54,7 +54,22 @@ def startScreen(canvas, stdscr):
                 continue
         stdscr.clear()
 
+def usage():
+    print "-p PORT_NUMBER, port to run server on (defaults to 9071)"
+        
 def main(stdscr):
+        
+        port = 9071
+    
+        try:
+                options, args = getopt.getopt(sys.argv[1:], 'p:')
+                port_selection = filter(lambda x: "-p" in x, options)
+                if len(port_selection) > 0:
+                        port = int(port_selection[0][1])
+        except (getopt.GetoptError, IndexError):
+                usage()
+                return()
+        
         #curses set up
         curses.noecho()
         curses.init_pair(1, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
@@ -68,7 +83,7 @@ def main(stdscr):
         printBoardClient(canvas, stdscr)
 
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.connect(('127.0.0.1', 9071)) 
+        server.connect(('127.0.0.1', port)) 
         
         boardString = canvas.boardToString()
         dataString = "New User"
