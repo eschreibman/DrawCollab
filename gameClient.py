@@ -39,7 +39,7 @@ def printBoardClient(canvas, stdscr):
         for i in range(canvas.height):
                 k = 0
                 for j in range(canvas.width):
-                        if(canvas.theboard[i][j] == "^"):
+                        if(canvas.theboard[i][j] == canvas.user):
                                 stdscr.addstr(l, k, canvas.theboard[i][j], curses.color_pair(1))
                         else:
                                 stdscr.addstr(l, k, canvas.theboard[i][j])
@@ -62,7 +62,7 @@ def main(stdscr):
         curses.curs_set(0)
         stdscr.nodelay(True)
         #board set up
-        canvas = board(Width, Height)
+        canvas = board(Width, Height, 0)
 
         startScreen(canvas, stdscr)
         printBoardClient(canvas, stdscr)
@@ -79,19 +79,16 @@ def main(stdscr):
                 rlist, wlist, xlist = select.select([server], [], [], 0)
                 for item in rlist: 
                         if item == server:
-                                #stdscr.clear()
-                                #stdscr.addstr(1,0, "in item is server")
                                 dataRec = server.recv(1024)
                                 message_rec = protocol_message.message_from_collapsed(dataRec)
-                                #stdscr.addstr(2,0, message_rec.message)
+                                canvas.stringToBoard(message_rec.message)
+                                printBoardClient(canvas, stdscr)
 
                 key = getInput(stdscr)
                 if (key == -1):
                         continue
-                #stdscr.addstr(0, 0, "key is " + key)
                 
                 if(key == ord("w") or key == ord("s") or key == ord("a") or key == ord("d") or key == curses.KEY_UP or key == curses.KEY_DOWN or key == curses.KEY_LEFT or key == curses.KEY_RIGHT):
-                        #stdscr.addstr(3, 0, "sending new board")
                         newPos = posDelta(key)
                         canvas.moveUser(newPos)
                         printBoardClient(canvas, stdscr)
