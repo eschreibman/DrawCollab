@@ -4,6 +4,8 @@ class protocol_message:
         TYPE_WELCOME = 1
         TYPE_UPDATE_BOARD = 2
 
+        SENTINEL = -1
+        
         def __init__(self, type, length, message):
                 self.type = type
                 self.length = length
@@ -11,14 +13,14 @@ class protocol_message:
 
         @staticmethod
         def message_from_collapsed(collapsed_message):
-                #if(len(collapsed_message) != 0):
-                type = ord(collapsed_message[0])
-                length = ord(collapsed_message[1])
-                message = collapsed_message[2:]
-                # else:
-                #       type = -1
-                #       length = -1
-                #       message = -1
+                if(len(collapsed_message) != 0):
+                        type = ord(collapsed_message[0])
+                        length = ord(collapsed_message[1])
+                        message = collapsed_message[2:]
+                else:
+                        type = protocol_message.SENTINEL
+                        length = protocol_message.SENTINEL
+                        message = protocol_message.SENTINEL
                 return protocol_message(type, length, message)
 
 
