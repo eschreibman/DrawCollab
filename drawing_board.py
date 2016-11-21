@@ -2,6 +2,7 @@ import sys
 from position_class import position
 class board:
     def __init__(self, w, h, userNum):
+        self.userNum = userNum
         if(userNum == 0):
             self.user = "^"
         elif(userNum == 1):
