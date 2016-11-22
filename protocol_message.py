@@ -44,4 +44,4 @@ class protocol_message:
                         Exception.throw
                         #TODO make more specific exception
 
-                return self.message[0]
+                return ord(self.message[0])
