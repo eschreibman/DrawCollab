@@ -33,10 +33,9 @@ class protocol_message:
 
 
         @staticmethod
-        def construct_welcome_message_data(user_id, user_token):
+        def construct_welcome_message_data(user_id):
                 welcome = ""
                 welcome += chr(user_id)
-                welcome += user_token
                 return welcome
 
 
@@ -46,9 +45,3 @@ class protocol_message:
                         #TODO make more specific exception
 
                 return self.message[0]
-
-        def welcome_message_user_token(self):
-                if self.type != protocol_message.TYPE_WELCOME:
-                        Exception.throw
-
-                return self.message[1]

@@ -11,6 +11,8 @@ def usage():
     print "-p PORT_NUMBER, port to run server on (defaults to 9071)"
 
 
+    
+
 port = 9071
     
 try:
@@ -33,12 +35,18 @@ print "Socket now listening"
 posBoard = "[1]"
 clients = []
 message_id = 0
+
+client_info_list = []
+num_users = 0
+
 while True:
     Connections, wlist, xlist = select.select([server], [], [], 0.05)
     
     for Connection in Connections:
         client, Informations = Connection.accept()
         clients.append(client)
+        client_info_list.append({'user_id': num_users, 'connection': client, 'connected': True})
+        num_users += 1
         print clients
         
     clientsList = []
@@ -53,9 +61,13 @@ while True:
             print dataRec
             message_rec = protocol_message.message_from_collapsed(dataRec)
             if(message_rec.type == protocol_message.TYPE_NEW_USER):
-                dataSend = protocol_message.construct_welcome_message_data(0, '*')
+                user_id_index = next(index for (index, d) in enumerate(client_info_list) if d['connection'] == clientInList)
+                print "User id:"
+                print client_info_list[user_id_index]['user_id']
+                dataSend = protocol_message.construct_welcome_message_data(client_info_list[user_id_index]['user_id'])
                 message_send = protocol_message(protocol_message.TYPE_WELCOME, len(dataSend), dataSend)
                 clientInList.send(message_send.collapsed())
+                
             if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
                 print(message_rec.message)
                 dataSend = "New board" + str(message_id)
