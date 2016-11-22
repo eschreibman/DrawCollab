@@ -39,8 +39,8 @@ def printBoardClient(canvas, stdscr):
         for i in range(canvas.height):
                 k = 0
                 for j in range(canvas.width):
-                        if(canvas.theboard[i][j] == "^"):
-                                stdscr.addstr(l, k, canvas.theboard[i][j], curses.color_pair(1))
+                        if(canvas.theboard[i][j] == canvas.user):
+                                stdscr.addstr(l, k, canvas.theboard[i][j], curses.color_pair(canvas.userNum + 1))
                         else:
                                 stdscr.addstr(l, k, canvas.theboard[i][j])
                         k += 2
@@ -57,6 +57,14 @@ def startScreen(canvas, stdscr):
 def usage():
     print "-p PORT_NUMBER, port to run server on (defaults to 9071)"
         
+def debugMsg(str, offset, stdscr):
+        j = (offset % 10) + 8
+        for i in range(len(str)):
+                if(i > 20):
+                        j += 1
+                        return
+                stdscr.addstr(j, i, str[i])
+
 def main(stdscr):
         
         port = 9071
@@ -73,45 +81,51 @@ def main(stdscr):
         #curses set up
         curses.noecho()
         curses.init_pair(1, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+        curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.curs_set(0)
         stdscr.nodelay(True)
-        #board set up
-        canvas = board(Width, Height)
-
-        startScreen(canvas, stdscr)
-        printBoardClient(canvas, stdscr)
-
+        
+        #server setup
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.connect(('127.0.0.1', port)) 
         
-        boardString = canvas.boardToString()
+        #send new user message
         dataString = "New User"
         dataSend = protocol_message(protocol_message.TYPE_NEW_USER, len(dataString), dataString)
         server.send(dataSend.collapsed())
-        
+        z = 0
         while True:
                 rlist, wlist, xlist = select.select([server], [], [], 0)
                 for item in rlist: 
                         if item == server:
-                                #stdscr.clear()
-                                #stdscr.addstr(1,0, "in item is server")
                                 dataRec = server.recv(1024)
                                 message_rec = protocol_message.message_from_collapsed(dataRec)
-                                if (message_rec.type == protocol_message.TYPE_WELCOME):
-                                        canvas.update_user_token(message_rec.welcome_message_user_token())
-                                #stdscr.addstr(2,0, message_rec.message)
+                                
+                                if(message_rec.type == protocol_message.TYPE_WELCOME):
+                                        #board set up
+                                        userNum = message_rec.welcome_message_user_id()
+                                        #userNum = message_rec.welcome_message_user_id()
+                                        canvas = board(Width, Height, userNum)
+                                        startScreen(canvas, stdscr)
 
+                                if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
+                                        debugMsg(message_rec.message, z, stdscr)
+                                        if(canvas.stringToBoard(message_rec.message) == -1):
+                                                debugMsg("error recv board", z, stdscr)
+                                                z += 1
+                                        printBoardClient(canvas, stdscr)
+                                        
+                #get user input through the keyboard
                 key = getInput(stdscr)
                 if (key == -1):
                         continue
-                #stdscr.addstr(0, 0, "key is " + key)
                 
                 if(key == ord("w") or key == ord("s") or key == ord("a") or key == ord("d") or key == curses.KEY_UP or key == curses.KEY_DOWN or key == curses.KEY_LEFT or key == curses.KEY_RIGHT):
-                        #stdscr.addstr(3, 0, "sending new board")
+                        #update our board and send it
                         newPos = posDelta(key)
                         canvas.moveUser(newPos)
-                        printBoardClient(canvas, stdscr)
                         boardString = canvas.boardToString()
                         message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, len(boardString), boardString)
                         server.send(message_send.collapsed())

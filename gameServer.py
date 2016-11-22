@@ -26,6 +26,7 @@ except (getopt.GetoptError, IndexError):
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 print 'Socket created'
+
 server.bind(('', port))
 print 'Socket bind complete'
 server.listen(5)
@@ -57,8 +58,8 @@ while True:
     else:
         for clientInList in clientsList:
             dataRec = clientInList.recv(1024)
-            print "Got: "
-            print dataRec
+            #print "Got: "
+            #print dataRec
             message_rec = protocol_message.message_from_collapsed(dataRec)
             if(message_rec.type == protocol_message.TYPE_NEW_USER):
                 user_id_index = next(index for (index, d) in enumerate(client_info_list) if d['connection'] == clientInList)
@@ -69,11 +70,12 @@ while True:
                 clientInList.send(message_send.collapsed())
                 
             if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
+                print("Got update board")
                 print(message_rec.message)
-                dataSend = "New board" + str(message_id)
-                message_id += 1
+                #send the board back
+                dataSend = message_rec.message
+                #message_id += 1
                 message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, len(dataSend), dataSend)
-                clientInList.send(message_send.collapsed())
                 notify_all_clients(clients, message_send)
             if(message_rec.type == protocol_message.SENTINEL):
                 clients.remove(clientInList)
