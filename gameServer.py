@@ -32,8 +32,9 @@ print 'Socket bind complete'
 server.listen(5)
 
 print "Socket now listening"
-    
-posBoard = "[1]"
+Height = 5
+Width = 10
+masterBoard = board(Width, Height)
 clients = []
 message_id = 0
 
