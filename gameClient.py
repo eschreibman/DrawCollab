@@ -5,10 +5,6 @@ import curses
 
 #have to do pip install py-getch
 
-Height = 5
-Width = 10
-userPos = position(0, 0)
-
 def getInput(stdscr):
         char = stdscr.getch()
         if char == -1:
@@ -66,9 +62,9 @@ def main(stdscr):
         #curses set up
         curses.noecho()
         curses.init_pair(1, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-        curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(4, curses.COLOR_BLUE, curses.COLOR_BLACK)
         curses.curs_set(0)
         stdscr.nodelay(True)
         
@@ -89,17 +85,21 @@ def main(stdscr):
                                 message_rec = protocol_message.message_from_collapsed(dataRec)
                                 if(message_rec.type == protocol_message.TYPE_WELCOME):
                                         #board set up
-                                        userNum = 0
+                                        userNum = 0 #TODO change to line below
                                         #userNum = message_rec.welcome_message_user_id()
-                                        canvas = board(Width, Height, userNum)
+                                        Height = 5
+                                        Width = 10
+                                        canvas = board(Width, Height) #TODO get width and height from server
+                                        canvas.addUser(userNum)
                                         startScreen(canvas, stdscr)
 
                                 if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
-                                        debugMsg(message_rec.message, z, stdscr)
-                                        if(canvas.stringToBoard(message_rec.message) == -1):
-                                                debugMsg("error recv board", z, stdscr)
-                                                z += 1
+                                        canvas.stringToBoardFromServer(message_rec.message)
                                         printBoardClient(canvas, stdscr)
+                                        # if(canvas.stringToBoardFromServer(message_rec.message) == -1):
+                                        #         debugMsg("error recv board", z, stdscr)
+                                        #         z += 1
+                                        #printBoardClient(canvas, stdscr)
                                         
                 #get user input through the keyboard
                 key = getInput(stdscr)
@@ -109,7 +109,10 @@ def main(stdscr):
                 if(key == ord("w") or key == ord("s") or key == ord("a") or key == ord("d") or key == curses.KEY_UP or key == curses.KEY_DOWN or key == curses.KEY_LEFT or key == curses.KEY_RIGHT):
                         #update our board and send it
                         newPos = posDelta(key)
+                       
                         canvas.moveUser(newPos)
+                        #printBoardClient(canvas, stdscr)
+                        
                         boardString = canvas.boardToString()
                         message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, len(boardString), boardString)
                         server.send(message_send.collapsed())
