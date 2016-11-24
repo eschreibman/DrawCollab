@@ -1,6 +1,7 @@
 import sys, socket, select, getopt
 from protocol_message import protocol_message
 from drawing_board import board
+from peer_to_peer import p2p_mode
 
 def notify_all_clients(clients, message):
     print("Notifying all clients")
@@ -50,6 +51,9 @@ while True:
         client_info_list.append({'user_id': num_users, 'connection': client, 'connected': True})
         num_users += 1
         print clients
+        # Test peer to peer mode init on every new client
+        print "P2P"
+        p2p_mode(client_info_list)
         
     clientsList = []
     try:
