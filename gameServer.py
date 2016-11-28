@@ -2,6 +2,9 @@ import sys, socket, select, getopt
 from protocol_message import protocol_message
 from drawing_board import board
 
+#run program either python gameSever.py or pythong gameServer.py -p portnum
+#where portnum is the port number you wish to use (the clients must use the same port number)
+
 def notify_all_clients(clients, message):
     print("Notifying all clients")
     for client in clients:
