@@ -52,43 +52,36 @@ def main():
             print "P2P"
             p2p_mode(client_info_list)
 
-            for Connection in Connections:
-                client, Informations = Connection.accept()
-                clients.append(client)
-                client_info_list.append({'user_id': num_users, 'connection': client, 'connected': True})
-                num_users += 1
-                print clients
+        clientsList = []
+        try:
+            clientsList, wlist, xlist = select.select(clients, [], [], 0.05)
+        except select.error:
+            pass
+        else:
+            for clientInList in clientsList:
+                dataRec = clientInList.recv(1024)
+                #print "Got: "
+                #print dataRec
+                message_rec = protocol_message.message_from_collapsed(dataRec)
+                if(message_rec.type == protocol_message.TYPE_NEW_USER):
+                    user_id_index = next(index for (index, d) in enumerate(client_info_list) if d['connection'] == clientInList)
+                    print "User id:"
+                    print client_info_list[user_id_index]['user_id']
+                    dataSend = protocol_message.construct_welcome_message_data(client_info_list[user_id_index]['user_id'])
+                    message_send = protocol_message(protocol_message.TYPE_WELCOME, len(dataSend), dataSend)
+                    clientInList.send(message_send.collapsed())
 
-            clientsList = []
-            try:
-                clientsList, wlist, xlist = select.select(clients, [], [], 0.05)
-            except select.error:
-                pass
-            else:
-                for clientInList in clientsList:
-                    dataRec = clientInList.recv(1024)
-                    #print "Got: "
-                    #print dataRec
-                    message_rec = protocol_message.message_from_collapsed(dataRec)
-                    if(message_rec.type == protocol_message.TYPE_NEW_USER):
-                        user_id_index = next(index for (index, d) in enumerate(client_info_list) if d['connection'] == clientInList)
-                        print "User id:"
-                        print client_info_list[user_id_index]['user_id']
-                        dataSend = protocol_message.construct_welcome_message_data(client_info_list[user_id_index]['user_id'])
-                        message_send = protocol_message(protocol_message.TYPE_WELCOME, len(dataSend), dataSend)
-                        clientInList.send(message_send.collapsed())
-
-                        if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
-                            print("Got update board")
-                            print(message_rec.message)
-                            #send the board back
-                            dataSend = message_rec.message
-                            #message_id += 1
-                            message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, len(dataSend), dataSend)
-                            notify_all_clients(clients, message_send)
-                        if(message_rec.type == protocol_message.SENTINEL):
-                            clients.remove(clientInList)
-                            # TODO add this client to a waiting to be reconnected list
+                    if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
+                        print("Got update board")
+                        print(message_rec.message)
+                        #send the board back
+                        dataSend = message_rec.message
+                        #message_id += 1
+                        message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, len(dataSend), dataSend)
+                        notify_all_clients(clients, message_send)
+                    if(message_rec.type == protocol_message.SENTINEL):
+                        clients.remove(clientInList)
+                        # TODO add this client to a waiting to be reconnected list
     clientInList.close()
     server.close()
 
