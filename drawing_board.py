@@ -84,7 +84,6 @@ class board:
                         self.theboard[i][j] = str[k]
                         k += 1
         return 0
-
     
     def update_user_token(self, user_token):
         self.user_token = user_token
