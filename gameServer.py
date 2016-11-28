@@ -71,17 +71,17 @@ def main():
                     message_send = protocol_message(protocol_message.TYPE_WELCOME, len(dataSend), dataSend)
                     clientInList.send(message_send.collapsed())
 
-                    if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
-                        print("Got update board")
-                        print(message_rec.message)
-                        #send the board back
-                        dataSend = message_rec.message
-                        #message_id += 1
-                        message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, len(dataSend), dataSend)
-                        notify_all_clients(clients, message_send)
-                    if(message_rec.type == protocol_message.SENTINEL):
-                        clients.remove(clientInList)
-                        # TODO add this client to a waiting to be reconnected list
+                if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
+                    print("Got update board")
+                    print(message_rec.message)
+                    #send the board back
+                    dataSend = message_rec.message
+                    #message_id += 1
+                    message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, len(dataSend), dataSend)
+                    notify_all_clients(clients, message_send)
+                if(message_rec.type == protocol_message.SENTINEL):
+                    clients.remove(clientInList)
+                    # TODO add this client to a waiting to be reconnected list
     clientInList.close()
     server.close()
 
