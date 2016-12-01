@@ -1,15 +1,16 @@
 class protocol_message:
 
-        TYPE_NEW_USER = 0
-        TYPE_WELCOME = 1
-        TYPE_UPDATE_BOARD = 2
-        TYPE_CUR_BOARD = 3
+        TYPE_USER_JOIN = 0
+        TYPE_WELCOME_NEW = 1
+        TYPE_WELCOME_BACK = 2
+        TYPE_USER_JOIN = 3
         SERVER = 0
 
         SENTINEL = -1
         
         def __init__(self, type, user, length, message):
                 self.type = type
+                #who the message is sent from, is 0 for the server or new user
                 self.user = user
                 self.length = length
                 self.message = message
@@ -38,16 +39,16 @@ class protocol_message:
                 return collapsed_message
 
 
-        @staticmethod
-        def construct_welcome_message_data(user_id):
-                welcome = ""
-                welcome += chr(user_id)
-                return welcome
+        # @staticmethod
+        # def construct_welcome_message_data(user_id):
+        #         welcome = ""
+        #         welcome += chr(user_id)
+        #         return welcome
 
 
-        def welcome_message_user_id(self):
-                if self.type != protocol_message.TYPE_WELCOME:
-                        Exception.throw
-                        #TODO make more specific exception
+        # def welcome_message_user_id(self):
+        #         if self.type != protocol_message.TYPE_WELCOME:
+        #                 Exception.throw
+        #                 #TODO make more specific exception
 
-                return ord(self.message[0])
+        #         return ord(self.message[0])

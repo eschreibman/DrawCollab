@@ -12,10 +12,11 @@ class board:
         self.theboard = [[self.emptySpace for x in range(w)] for y in range(h)]
         self.userPosition = position(0, 0)
 
-    def addUser(self, userNum):
+    def addUser(self, userNum, userName):
         #called by client
         #add a user character and put it at the first spot in the board
         self.userNum = userNum
+        self.userName = userName
         if(userNum < len(self.possibleUsers)):
             self.user = self.possibleUsers[userNum]
         else:
@@ -82,50 +83,55 @@ class board:
         slen = len(str)
         k = 0
         for i in range(self.height):
-                for j in range(self.width):
-                        #don't include the delimiting characters
-                        while(str[k] == "[" or str[k] == "," or str[k] == "]"):
-                                k += 1
-                        #deal with two users being on the same spot
-                        #if(str[k] == self.anyUser):
-                        #    self.theboard[i][j] = self.user
-                        if(k == slen):
-                            return -1
-                        self.theboard[i][j] = str[k]
-                        k += 1
+            for j in range(self.width):
+                #don't include the delimiting characters
+                while(str[k] == "[" or str[k] == " " or str[k] == "]"):
+                    k += 1
+                #deal with two users being on the same spot
+                if(str[k] == self.anyUser):
+                    self.theboard[i][j] = self.user
+                if(k == slen):
+                    return -1
+                self.theboard[i][j] = str[k]
+                k += 1
         return 0
     
+    def addUserListToBoard(self, userList):
+        for i in range(self.height):
+            for j in range(self.width):
+                continue
+
 
     def update_user_token(self, user_token):
         self.user_token = user_token
 
-    def mergeBoards(self, otherBoard):
-        if((self.height != otherBoard.height) or (self.width != otherBoard.width)):
-            return -1
-        for i in range(self.height):
-            for j in range(self.width):
-                if(self.hasUser(i, j)):
-                    if(self.sameBoard(otherBoard)):
-                        self.theboard[i][j] = otherBoard.theboard[i][j]
-                else:
-                    self.theboard[i][j] = otherBoard.theboard[i][j]
+    # def mergeBoards(self, otherBoard):
+    #     if((self.height != otherBoard.height) or (self.width != otherBoard.width)):
+    #         return -1
+    #     for i in range(self.height):
+    #         for j in range(self.width):
+    #             if(self.hasUser(i, j)):
+    #                 if(self.sameBoard(otherBoard)):
+    #                     self.theboard[i][j] = otherBoard.theboard[i][j]
+    #             else:
+    #                 self.theboard[i][j] = otherBoard.theboard[i][j]
     
-    def hasUser(self, i, j):
-        for k in self.possibleUsers:
-            if(self.theboard[i][j] == k):
-                return True
-        return False
+    # def hasUser(self, i, j):
+    #     for k in self.possibleUsers:
+    #         if(self.theboard[i][j] == k):
+    #             return True
+    #     return False
 
-    def findMyUser(self):
-        for i in range(self.height):
-            for j in range(self.width):
-                if(self.hasUser(i, j)):
-                    self.user = self.theboard[i][j]
+    # def findMyUser(self):
+    #     for i in range(self.height):
+    #         for j in range(self.width):
+    #             if(self.hasUser(i, j)):
+    #                 self.user = self.theboard[i][j]
 
-    def sameBoard(self, otherBoard):
-        if(self.user == otherBoard.user):
-            return True
-        return False
+    # def sameBoard(self, otherBoard):
+    #     if(self.user == otherBoard.user):
+    #         return True
+    #     return False
 
 
 

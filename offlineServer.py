@@ -32,8 +32,6 @@ def main():
     message_id = 0
 
     client_info_list = []
-    #dictonary where keys are client sockets and values are usernum
-    #knownClients = {}
     masterClientList = userList()
     num_users = 0
 
@@ -46,10 +44,9 @@ def main():
             #client_info_list.append({'user_id': num_users, 'connection': client, 'connected': True})
             #num_users += 1
             #print "num users: " + str(num_users)
-            print clients
+            #print clients
            
         clientsList = []
-        first = True 
         try:
             clientsList, wlist, xlist = select.select(clients, [], [], 0.05)
         except select.error:
@@ -57,10 +54,10 @@ def main():
         else:
             for clientInList in clientsList:
                 dataRec = clientInList.recv(1024)
-                print "Got: "
-                print dataRec
+                #print "Got: "
+                #print dataRec
                 message_rec = protocol_message.message_from_collapsed(dataRec)
-                if(message_rec.type == protocol_message.TYPE_NEW_USER):
+                if(message_rec.type == protocol_message.TYPE_USER_JOIN):
                     #a client in joining
                     #user_id_index = next(index for (index, d) in enumerate(client_info_list) if d['connection'] == clientInList)
                     
@@ -68,36 +65,34 @@ def main():
                     #have we seen this client before
                     username = message_rec.message
                     print "user " + username + " joined"
-                    #found = False
-                    #for u in knownClients:
-                    #    if(u == name):
-                    #        "client rejoining"
-                    #        found = True
-
-                    # if(not found):
-                    #     print "never before seen client"
-                    #     knownClients[name] = num_users
-                    #     num_users += 1
+                    
                     if(masterClientList.userExists(username)):
                         print "welcome back"
+                        dataSend = masterClientList.listToString()
+                        message_send = protocol_message(protocol_message.TYPE_WELCOME_BACK, protocol_message.SERVER, len(dataSend), dataSend)
                     else:
                         print "never before seen client"
-                        masterClientList.addNewUser(username, num_users)
+                        masterClientList.addUserDefault(username, num_users)
                         num_users += 1
+                        dataSend = masterClientList.listToString()
+                        print "list to string: " + dataSend
+                        message_send = protocol_message(protocol_message.TYPE_WELCOME_NEW, protocol_message.SERVER, len(dataSend), dataSend)
+
+                    clientInList.send(message_send.collapsed())
 
                     #dataSend = masterBoard.boardToString() #protocol_message.construct_welcome_message_data(client_info_list[user_id_index]['user_id'])
                     #message_send = protocol_message(protocol_message.TYPE_WELCOME, knownClients[name], len(dataSend), dataSend)
                     #clientInList.send(message_send.collapsed())
                     #masterBoard.addUser(0)#client_info_list[user_id_index]['user_id'])
 
-                if(message_rec.type == protocol_message.TYPE_CUR_BOARD):
-                    print "Get the current board state"
+                # if(message_rec.type == protocol_message.TYPE_CUR_BOARD):
+                #     print "Get the current board state"
                     #curBoardState = protocol_message(protocol_message.TYPE_CUR_BOARD, 0, len(masterBoard.boardToString()), masterBoard.boardToString())
                     #clientInList.send(curBoardState.collapsed())
                     
-                if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
-                    print("Got update board")
-                    print(message_rec.message)
+                # if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
+                #     print("Got update board")
+                #     print(message_rec.message)
                     # recvBoard.stringToBoard(message_rec.message)
                     # recvBoard.findMyUser()
                     # masterBoard.mergeBoards(recvBoard)
