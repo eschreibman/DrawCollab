@@ -1,6 +1,6 @@
 import sys, socket, select, getopt
-from protocol_message import protocol_message
-from drawing_board import board
+from offlineProtocol import protocol_message
+from offlineDrawingBoard import board
 
 #run program either python gameSever.py or pythong gameServer.py -p portnum
 #where portnum is the port number you wish to use (the clients must use the same port number)
@@ -15,26 +15,17 @@ def usage():
 
 
 def main():
-    port = 9071
-        
-    try:
-        options, args = getopt.getopt(sys.argv[1:], 'p:')
-        port_selection = filter(lambda x: "-p" in x, options)
-        if len(port_selection) > 0:
-            port = int(port_selection[0][1])
-    except (getopt.GetoptError, IndexError):
-        usage()
-        exit()
-
+    port = getPort()
+    #socket setup
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print 'Socket created'
-
     server.bind(('', port))
     server.listen(5)
 
     Height = 5
     Width = 10
     masterBoard = board(Width, Height)
+    masterBoard.addUserServer()
+    recvBoard = board(Width, Height)
     clients = []
     message_id = 0
 
@@ -69,13 +60,20 @@ def main():
                     dataSend = protocol_message.construct_welcome_message_data(client_info_list[user_id_index]['user_id'])
                     message_send = protocol_message(protocol_message.TYPE_WELCOME, len(dataSend), dataSend)
                     clientInList.send(message_send.collapsed())
+                    masterBoard.addUser(client_info_list[user_id_index]['user_id'])
+
+                if(message_rec.type == protocol_message.TYPE_CUR_BOARD):
+                    curBoardState = protocol_message(protocol_message.TYPE_CUR_BOARD, len(masterBoard.boardToString()), masterBoard.boardToString())
+                    clientInList.send(curBoardState.collapsed())
                     
                 if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
                     print("Got update board")
                     print(message_rec.message)
+                    recvBoard.stringToBoard(message_rec.message)
+                    recvBoard.findMyUser()
+                    masterBoard.mergeBoards(recvBoard)
                     #send the board back
-                    dataSend = message_rec.message
-                    #message_id += 1
+                    dataSend = masterBoard.boardToString()
                     message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, len(dataSend), dataSend)
                     notify_all_clients(clients, message_send)
                 if(message_rec.type == protocol_message.SENTINEL):
@@ -84,6 +82,19 @@ def main():
     clientInList.close()
     server.close()
 
+#see if the user has run the program with a designated port number
+#if not, set the default port number
+def getPort():
+    port = 9071
+    try:
+        options, args = getopt.getopt(sys.argv[1:], 'p:')
+        port_selection = filter(lambda x: "-p" in x, options)
+        if len(port_selection) > 0:
+            port = (int(port_selection[0][1]))
+    except (getopt.GetoptError, IndexError):
+        usage()
+        exit()
+    return port
 
 
 #when the program is run, call the above "main" function

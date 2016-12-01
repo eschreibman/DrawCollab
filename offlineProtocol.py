@@ -4,11 +4,13 @@ class protocol_message:
         TYPE_WELCOME = 1
         TYPE_UPDATE_BOARD = 2
         TYPE_CUR_BOARD = 3
+        SERVER = 0
 
         SENTINEL = -1
         
-        def __init__(self, type, length, message):
+        def __init__(self, type, user, length, message):
                 self.type = type
+                self.user = user
                 self.length = length
                 self.message = message
 
@@ -16,18 +18,21 @@ class protocol_message:
         def message_from_collapsed(collapsed_message):
                 if(len(collapsed_message) != 0):
                         type = ord(collapsed_message[0])
-                        length = ord(collapsed_message[1])
-                        message = collapsed_message[2:]
+                        user = ord(collapsed_message[1])
+                        length = ord(collapsed_message[2])
+                        message = collapsed_message[3:]
                 else:
                         type = protocol_message.SENTINEL
+                        user = protocol_message.SENTINEL
                         length = protocol_message.SENTINEL
                         message = protocol_message.SENTINEL
-                return protocol_message(type, length, message)
+                return protocol_message(type, user, length, message)
 
 
         def collapsed(self):
                 collapsed_message = ""
                 collapsed_message +=  chr(self.type)
+                collapsed_message +=  chr(self.user)
                 collapsed_message += chr(self.length)
                 collapsed_message = collapsed_message + self.message
                 return collapsed_message

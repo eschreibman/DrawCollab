@@ -1,11 +1,13 @@
 import sys, socket, getch, select, time, getopt
 from offlineProtocol import protocol_message
 from offlineDrawingBoard import board, position
+from offlineUser import user, userList
 import curses
 
 #have to do pip install py-getch
 #run program either python gameClient.py or pythong gameClient.py -p portnum
 #where portnum is the port number you wish to use (the server must use the same port number)
+
 
 def getPort():
     port = 9071
@@ -18,6 +20,15 @@ def getPort():
         usage()
         exit()
     return port
+
+def cursesInit():
+        #curses set up
+        curses.noecho()
+        curses.init_pair(1, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+        curses.init_pair(4, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        curses.curs_set(0)      
 
 def getInput(stdscr):
         char = stdscr.getch()
@@ -43,14 +54,7 @@ def posDelta(dir):
                 p.updatePos(0, -1)
         return p
 
-def cursesInit():
-        #curses set up
-        curses.noecho()
-        curses.init_pair(1, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
-        curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-        curses.init_pair(4, curses.COLOR_BLUE, curses.COLOR_BLACK)
-        curses.curs_set(0)      
+
 
 #print to the curses string all the board characters with spaces in between
 def printBoardClient(canvas, stdscr):
@@ -65,10 +69,25 @@ def printBoardClient(canvas, stdscr):
                         k += 2
                 l += 1
                 
-def startScreen(canvas, stdscr):
+def startScreen(stdscr):
+        i = 0
+        maxy, maxx = stdscr.getmaxyx()
         stdscr.addstr(0, 0, "Welcome!", curses.color_pair(2))
-        stdscr.addstr(1, 0, "Use 'wasd' or arrow keys to move. Press 'q' to quit.", curses.color_pair(2))
-        stdscr.addstr(3, 0, "Press any key to begin!", curses.color_pair(2))
+        stdscr.addstr(1, 0, "Enter your username by typing and hit enter when done", curses.color_pair(2))
+        inpt = getInput(stdscr)
+        while((inpt != curses.KEY_DOWN) and (str(inpt) != "10") and (str(inpt) != "13")):
+            #until the user hits enter
+            if(inpt != -1):
+                if(i >= maxx):
+                    #stop if the player goes off the window size limit
+                    break
+                stdscr.addstr(2, i, chr(inpt), curses.color_pair(2))
+                i += 1
+            inpt = getInput(stdscr)
+                
+        stdscr.clear()
+        stdscr.addstr(0, 0, "Use 'wasd' or arrow keys to move. Press 'q' to quit.", curses.color_pair(2))
+        stdscr.addstr(1, 0, "Press any key to begin!", curses.color_pair(2))
         while(getInput(stdscr) == -1):
                 continue
         stdscr.clear()
@@ -86,19 +105,20 @@ def debugMsg(str, offset, stdscr):
 
 def main(stdscr):
         
-        port = getPort()
+        #port = getPort()
         cursesInit()
         stdscr.nodelay(True)
         #server setup
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.connect(('127.0.0.1', port)) 
+        #server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #server.connect(('127.0.0.1', port)) 
         
         #send new user message
-        dataString = "New User"
-        dataSend = protocol_message(protocol_message.TYPE_NEW_USER, len(dataString), dataString)
-        server.send(dataSend.collapsed())
+        dataString = "Username"
+        #dataSend = protocol_message(protocol_message.TYPE_NEW_USER, 0, len(dataString), dataString)
+        #server.send(dataSend.collapsed())
         z = 0
-        while True:
+        startScreen(stdscr)
+        while False:
                 rlist, wlist, xlist = select.select([server], [], [], 0)
                 for item in rlist: 
                         if item == server:
@@ -106,23 +126,26 @@ def main(stdscr):
                                 message_rec = protocol_message.message_from_collapsed(dataRec)
                                 
                                 if(message_rec.type == protocol_message.TYPE_WELCOME):
+                                        continue
                                         #board set up
-                                        userNum = message_rec.welcome_message_user_id()
-                                        Height = 5
-                                        Width = 10
-                                        canvas = board(Width, Height) #TODO get width and height from server
-                                        canvas.addUser(userNum)
-                                        startScreen(canvas, stdscr)
+                                        # userNum = message_rec.welcome_message_user_id()
+                                        # Height = 5
+                                        # Width = 10
+                                        # canvas = board(Width, Height) #TODO get width and height from server
+                                        # canvas.addUser(userNum)
+                                        
                                         #printBoardClient(canvas, stdscr)
 
                                 if(message_rec.type == protocol_message.TYPE_CUR_BOARD):
+                                        continue
                                         #server sent the master board
-                                        canvas.stringToBoard(message_rec.message)
-                                        printBoardClient(canvas, stdscr)
+                                        # canvas.stringToBoard(message_rec.message)
+                                        # printBoardClient(canvas, stdscr)
 
                                 if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
-                                        canvas.stringToBoard(message_rec.message)
-                                        printBoardClient(canvas, stdscr)
+                                        continue
+                                        #canvas.stringToBoard(message_rec.message)
+                                        #printBoardClient(canvas, stdscr)
                                         # if(canvas.stringToBoardFromServer(message_rec.message) == -1):
                                         #         debugMsg("error recv board", z, stdscr)
                                         #         z += 1
@@ -130,21 +153,19 @@ def main(stdscr):
                                         
                 #get user input through the keyboard
                 key = getInput(stdscr)
-                if (key == -1):
-                        continue
-                
+               
                 if(key == ord("w") or key == ord("s") or key == ord("a") or key == ord("d") or key == curses.KEY_UP or key == curses.KEY_DOWN or key == curses.KEY_LEFT or key == curses.KEY_RIGHT):
                         #update our board and send it
                         newPos = posDelta(key)
-                        canvas.moveUser(newPos)
-                        boardString = canvas.boardToString()
-                        message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, len(boardString), boardString)
-                        server.send(message_send.collapsed())
+                        # canvas.moveUser(newPos)
+                        # boardString = canvas.boardToString()
+                        # message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, 0, len(boardString), boardString)
+                        # server.send(message_send.collapsed())
 
                 if(key == ord("u")):
                         s = "hello"
-                        message_send = protocol_message(protocol_message.TYPE_CUR_BOARD, len(s), s)
-                        server.send(message_send.collapsed())
+                        # message_send = protocol_message(protocol_message.TYPE_CUR_BOARD, 0, len(s), s)
+                        # server.send(message_send.collapsed())
 
 
 #main for testing board logic without server
