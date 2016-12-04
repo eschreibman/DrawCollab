@@ -4,6 +4,8 @@ from drawing_board import board, position
 import curses
 
 #have to do pip install py-getch
+#run program either python gameClient.py or pythong gameClient.py -p portnum
+#where portnum is the port number you wish to use (the server must use the same port number)
 
 def getInput(stdscr):
         char = stdscr.getch()
@@ -107,6 +109,7 @@ def main(stdscr):
                                         canvas = board(Width, Height) #TODO get width and height from server
                                         canvas.addUser(userNum)
                                         startScreen(canvas, stdscr)
+                                        printBoardClient(canvas, stdscr)
 
                                 if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
                                         canvas.stringToBoardFromServer(message_rec.message)
