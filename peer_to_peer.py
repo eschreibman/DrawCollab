@@ -1,9 +1,13 @@
+from p2p_protocol_message import protocol_message
+
 class p2p_mode:
 
     def __init__(self, peers):
         self.peers = []
         #For now just make an arbitrary ring
         for peer in peers:
+            print peer['connection'].getpeername()
+            
             self.peers.append(peer)
             self.peers[-1]['neighbors'] = []
             if len(self.peers) > 1:
@@ -18,7 +22,12 @@ class p2p_mode:
     # Assign peers
 
     # Notify users of peer to peer
-    
+    def send_peer_to_peer_notification(self):
+        for peer in self.peers:
+            dataSend = protocol_message.construct_peer_to_peer_notification_data(peer['neighbors'])
+            message_send = protocol_message(protocol_message.TYPE_P2P_NOTE, len(dataSend), dataSend)        
+            peer['connection'].send(message_send.collapsed())
+            
     # Add a peer
 
     # Peer functions
@@ -26,7 +35,7 @@ class p2p_mode:
     # Notify peers
 
 
-    # Debugging/ printing
+        # Debugging/ printing
     def print_peers(self):
         if len(self.peers) <= 2:
             return
