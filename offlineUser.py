@@ -1,56 +1,115 @@
 import sys
 from position_class import position
 class user:
-    def __init__(self, username, userID, position):
+    def __init__(self):
+        self.name = ""
+        self.userID = 0
+        self.pos = position(0, 0)
+
+    def setNameIDPos(self, username, userID, position):
         self.name = username
         self.userID = userID
         self.pos = position
 
+    def updateUsername(self, username):
+        self.name = username
+
+    def updateID(self, userID):
+        self.userID = userID
+
+    def updatePosition(self, position):
+        self.pos = position
+
+    def toString(self):
+        string = self.name
+        string += " "
+        string += str(self.userID)
+        string += " "
+        string += self.pos.toString()
+        return string
+
+    def fromString(self, string):
+        self.name, ID, x, y = string.split(" ")
+        self.userID = int(ID)
+        self.pos.updatePos(int(x), int(y))
+
 class userList:
     def __init__(self):
-        self.theList = []
+        #self.theList = []
+        #assumes unique user names!
+        self.theDictionary = {}
+
+    def addOrUpdateUser(self, usr):
+        self.theDictionary[usr.name] = usr
 
     def addUserDefault(self, username, ID):
         p = position(0, 0)
-        usr = user(username, ID, p)
-        self.theList.append(usr)
+        usr = user()
+        usr.setNameIDPos(username, ID, p)
+        #self.theList.append(usr)
+        self.theDictionary[username] = usr
 
     def addUserWithPosition(self, username, ID, x, y):
         p = position(x, y)
-        usr = user(username, ID, p)
-        self.theList.append(usr)
+        usr = user()
+        usr.setNameIDPos(username, ID, p)
+        #self.theList.append(usr)
+        self.theDictionary[username] = usr
 
     def updateUserPosition(self, usr, x, y):
-        for i in self.theList:
-            if(i.name == usr.name):
-                i.pos.updatePos(x, y)
+        # for i in self.theList:
+        #     if(i.name == usr.name):
+        #         i.pos.updatePos(x, y)
+        if(usr.name in self.theDictionary):
+            self.theDictionary[usr.name].pos.updatePos(x, y)
+
+    def updateUserPos(self, usr, position):
+        if(usr.name in self.theDictionary):
+            self.theDictionary[usr.name].pos = position
 
     def userExists(self, username):
-        for i in self.theList:
-            if(i.name == username):
-                return True
+        # for i in self.theList:
+        #     if(i.name == username):
+        #         return True
+        # return False
+        if(username in self.theDictionary):
+            return True
         return False
 
     def getUserNum(self, username):
-        for i in self.theList:
-            if(i.name == username):
-                return i.userID
+        # for i in self.theList:
+        #     if(i.name == username):
+        #         return i.userID
+        # return -1
+        if(username in self.theDictionary):
+            return self.theDictionary[username].userID
 
-        return -1
+    def getUserPos(self, username):
+        if(username in self.theDictionary):
+            return self.theDictionary[username].pos
+
+    def getUserByName(self, username):
+        # for i in self.theList:
+        #     if(i.name == username):
+        #         return i
+        if(username in self.theDictionary):
+            return self.theDictionary[username]
+
+    def updatePosByID(self, ID, pos):
+        for key, value in self.theDictionary.items():
+            if(ID == value.userID):
+                value.pos = pos
+                break
+
 
     #return the list of users (represented by their names, ids, and positions)
     #ex: [eliza 1 0 0][nicki 2 1 3]
     def listToString(self):
         string = ""
-        for i in self.theList:
+        #for i in self.theList:
+        for key, value in self.theDictionary.items():
             string += "["
-            string += i.name
-            string += " "
-            string += str(i.userID)
-            string += " "
-            string += str(i.pos.x)
-            string += " "
-            string += str(i.pos.y)
+            string += value.toString()
             string += "]"
         return string
 
@@ -59,26 +118,16 @@ class userList:
         i = 0;
         while(i < strlen):
             oneUser = ""; username = ""; ID = ""; x = ""; y = ""
-            if(str[i] == "["):
-                i += 1
-            else:
+            if(str[i] != "["):
                 while(str[i] != "]"):
                     oneUser += str[i]
                     i += 1
-                username, ID, x, y = oneUser.split(" ")
-                # i += 1 #ignore the white space
-                # while(str[i] != " "):
-                #     ID += str[i]
-                #     i += 1
-                # i += 1 #ignore the white space
-                # while(str[i] != " "):
-                #     x += str[i]
-                #     i += 1
-                # i += 1 #ignore the white space
-                # while(str[i] != " "):
-                #     y += str[i]
-                #     i += 1
-                i += 1
-                self.addUserWithPosition(username, int(ID), int(x), int(y))
+                #username, ID, x, y = oneUser.split(" ")
+                tempusr = user()
+                tempusr.fromString(oneUser)
+                self.addOrUpdateUser(tempusr)
+                #self.addUserWithPosition(username, int(ID), int(x), int(y))
+            i += 1
+                
  
 

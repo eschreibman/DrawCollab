@@ -4,6 +4,8 @@ class protocol_message:
         TYPE_WELCOME_NEW = 1
         TYPE_WELCOME_BACK = 2
         TYPE_USER_JOIN = 3
+        TYPE_CLIENT_UPDATE_POS = 4
+        TYPE_SERVER_UPDATE_POS = 5
         SERVER = 0
 
         SENTINEL = -1

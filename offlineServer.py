@@ -58,20 +58,17 @@ def main():
                 #print dataRec
                 message_rec = protocol_message.message_from_collapsed(dataRec)
                 if(message_rec.type == protocol_message.TYPE_USER_JOIN):
-                    #a client in joining
-                    #user_id_index = next(index for (index, d) in enumerate(client_info_list) if d['connection'] == clientInList)
                     
-                    #print client_info_list[user_id_index]['user_id']
-                    #have we seen this client before
                     username = message_rec.message
                     print "user " + username + " joined"
-                    
+                    #have we seen this client before
                     if(masterClientList.userExists(username)):
-                        print "welcome back"
+                        print "welcome back " + username + " with ID " + str(masterClientList.getUserNum(username))
                         dataSend = masterClientList.listToString()
                         message_send = protocol_message(protocol_message.TYPE_WELCOME_BACK, protocol_message.SERVER, len(dataSend), dataSend)
                     else:
-                        print "never before seen client"
+                        print "never before seen client " + username + "...assigned ID " + str(num_users)
+                        #add new user to the list and associate their name with a user num
                         masterClientList.addUserDefault(username, num_users)
                         num_users += 1
                         dataSend = masterClientList.listToString()
@@ -80,26 +77,26 @@ def main():
 
                     clientInList.send(message_send.collapsed())
 
-                    #dataSend = masterBoard.boardToString() #protocol_message.construct_welcome_message_data(client_info_list[user_id_index]['user_id'])
-                    #message_send = protocol_message(protocol_message.TYPE_WELCOME, knownClients[name], len(dataSend), dataSend)
-                    #clientInList.send(message_send.collapsed())
-                    #masterBoard.addUser(0)#client_info_list[user_id_index]['user_id'])
-
                 # if(message_rec.type == protocol_message.TYPE_CUR_BOARD):
                 #     print "Get the current board state"
                     #curBoardState = protocol_message(protocol_message.TYPE_CUR_BOARD, 0, len(masterBoard.boardToString()), masterBoard.boardToString())
                     #clientInList.send(curBoardState.collapsed())
                     
-                # if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
-                #     print("Got update board")
-                #     print(message_rec.message)
-                    # recvBoard.stringToBoard(message_rec.message)
-                    # recvBoard.findMyUser()
-                    # masterBoard.mergeBoards(recvBoard)
-                    # #send the board back
-                    # dataSend = masterBoard.boardToString()
-                    # message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, 0, len(dataSend), dataSend)
-                    # notify_all_clients(clients, message_send)
+                if(message_rec.type == protocol_message.TYPE_CLIENT_UPDATE_POS):
+                    #a client updated their position
+                    print("Client updated their position")
+                    print(message_rec.message)
+                    #update the client list
+                    #newPos = position(0, 0)
+                    msgFromUser = user()
+                    msgFromUser.fromString(message_rec.message)
+                    masterClientList.addOrUpdateUser(msgFromUser)
+                    #newPos.stringToPosition(message_rec.message)
+                    #now send the updated client list out
+                    dataSend = masterClientList.listToString()
+                    print "list to string to send: " + dataSend
+                    message_send = protocol_message(protocol_message.TYPE_SERVER_UPDATE_POS, protocol_message.SERVER, len(dataSend), dataSend)
+                    notify_all_clients(clients, message_send)
 
                 if(message_rec.type == protocol_message.SENTINEL):
                     print "Client left"

@@ -17,7 +17,7 @@ def getPort():
         if len(port_selection) > 0:
             port = (int(port_selection[0][1]))
     except (getopt.GetoptError, IndexError):
-        usage()
+        print "-p PORT_NUMBER, port to run server on (defaults to 9071)"
         exit()
     return port
 
@@ -36,10 +36,8 @@ def getInput(stdscr):
                 return -1
         #q quits the program
         if(char == ord("q")):
-                print "Quiting..."
-                shutdown_client()
-                sys.exit();
-                #server.close() #uncomment
+                exitmsg = "Quiting...goodbye!"
+                shutdown_client(exitmsg)
         return char
 
 def posDelta(dir):
@@ -86,7 +84,7 @@ def getUserInputedName(stdscr):
     i = 0
     usernameEntered = ""
     maxy, maxx = stdscr.getmaxyx()
-    inpt = getInput(stdscr)
+    inpt = stdscr.getch()
     while((inpt != curses.KEY_DOWN) and (str(inpt) != "10") and (str(inpt) != "13")):
         #until the user hits enter
         if(inpt != -1):
@@ -106,12 +104,16 @@ def getUserInputedName(stdscr):
                     stdscr.addstr(3, i, chr(inpt), curses.color_pair(2))
                     usernameEntered += chr(inpt)
                     i += 1
-        inpt = getInput(stdscr)
+        inpt = stdscr.getch()
     return usernameEntered
 
+def userInitialization(clientName, myUserList, canvas):
+    #get our assigned userID num from the list
+    assignedID = myUserList.getUserNum(clientName)
+    #get the initial information about our name, ID, and pos
+    userSelf = myUserList.getUserByName(clientName)
+    canvas.addUser(assignedID, clientName)
 
-def usage():
-    print "-p PORT_NUMBER, port to run server on (defaults to 9071)"
         
 def debugMsg(str, offset, stdscr):
     j = (offset % 10) + 8
@@ -124,58 +126,82 @@ def debugMsg(str, offset, stdscr):
 def main(stdscr):
         
     port = getPort()
+
+    #server setup
+    global server 
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
     cursesInit()
     stdscr.nodelay(True)
     clientName = startScreen(stdscr)
-    #server setup
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.connect(('127.0.0.1', port)) 
+    #board setup
+    Height = 5
+    Width = 10
+    canvas = board(Width, Height)
+
+    #user and userlist setup
+    myUserList = userList()
+    userSelf = user()
+    userSelf.updateUsername(clientName)
+
+    try:
+        server.connect(('127.0.0.1', port))
+    except socket.error as msg:
+        exitmsg = "Unable to connect to port " + str(port) + "...quiting."
+        shutdown_client(exitmsg)
+        
+     
     
     #send new user message, sends the username and 0 as the id
     dataSend = protocol_message(protocol_message.TYPE_USER_JOIN, 0, len(clientName), clientName)
     server.send(dataSend.collapsed())
     z = 0 #DEBUG
     
-    Height = 5
-    Width = 10
-    canvas = board(Width, Height)
-    myUserList = userList()
+    
     while True:
-        rlist, wlist, xlist = select.select([server], [], [], 0)
+        try:
+            rlist, wlist, xlist = select.select([server], [], [], 0)
+        except socket.error as msg:
+            exitmsg = "Select failed...quiting."
+            shutdown_client(exitmsg)
         for item in rlist: 
                 if item == server:
-                    dataRec = server.recv(1024)
+                    try:
+                        dataRec = server.recv(1024)
+                    except socket.error as msg:
+                        exitmsg = "Connection reset by peer...quiting."
+                        shutdown_client(exitmsg)
+                    
                     message_rec = protocol_message.message_from_collapsed(dataRec)
                     
                     if(message_rec.type == protocol_message.TYPE_WELCOME_NEW):
                         debugMsg("welcome new", z, stdscr)
                         z += 1
+                        #populate the userlist with information from the server
                         myUserList.stringToUserList(message_rec.message)
-                        canvas.addUser(myUserList.getUserNum(clientName), clientName)
+                        userInitialization(clientName, myUserList, canvas)
                         printBoardClient(canvas, stdscr)
-
-                        #board set up
-                        # userNum = message_rec.welcome_message_user_id()
-                        #TODO get width and height from server
-                        
-                        
-                        #printBoardClient(canvas, stdscr)
 
                     if(message_rec.type == protocol_message.TYPE_WELCOME_BACK):
                         debugMsg("welcome back", z, stdscr)
                         z += 1
+                        #populate the userlist with information from the server
+                        myUserList.stringToUserList(message_rec.message)
+                        userInitialization(clientName, myUserList, canvas)
+                        printBoardClient(canvas, stdscr)
+                        
 
                     #if(message_rec.type == protocol_message.TYPE_CUR_BOARD):
                             #server sent the master board
                             # canvas.stringToBoard(message_rec.message)
                             # printBoardClient(canvas, stdscr)
 
-                    #if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
+                    if(message_rec.type == protocol_message.TYPE_SERVER_UPDATE_POS):
                             #canvas.stringToBoard(message_rec.message)
                             #printBoardClient(canvas, stdscr)
-                            # if(canvas.stringToBoardFromServer(message_rec.message) == -1):
-                            #         debugMsg("error recv board", z, stdscr)
-                            #         z += 1
+                        # if(canvas.stringToBoardFromServer(message_rec.message) == -1):
+                        debugMsg("server updated", z, stdscr)
+                        z += 1
                             #printBoardClient(canvas, stdscr)
                                     
         #get user input through the keyboard
@@ -184,20 +210,21 @@ def main(stdscr):
         if(key == ord("w") or key == ord("s") or key == ord("a") or key == ord("d") or key == curses.KEY_UP or key == curses.KEY_DOWN or key == curses.KEY_LEFT or key == curses.KEY_RIGHT):
             #update our board and send it
             newPos = posDelta(key)
-            # canvas.moveUser(newPos)
-            # boardString = canvas.boardToString()
-            # message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, 0, len(boardString), boardString)
-            # server.send(message_send.collapsed())
+            canvas.moveUser(newPos)
+            userSelf.pos = canvas.userPosition
+            posToSend = userSelf.toString()
+            message_send = protocol_message(protocol_message.TYPE_CLIENT_UPDATE_POS, userSelf.userID, len(posToSend), posToSend)
+            server.send(message_send.collapsed())
 
-        if(key == ord("u")):
-            s = "hello"
-            # message_send = protocol_message(protocol_message.TYPE_CUR_BOARD, 0, len(s), s)
-            # server.send(message_send.collapsed())
 
-def shutdown_client():
+def shutdown_client(exitMessage):
         curses.echo()  
         curses.nocbreak()                                                                          
         curses.endwin()
+        #close the socket connected to the server
+        server.close()
+        print exitMessage
+        exit()
 
 #when the program is run, call the above "main" function
 if __name__ == "__main__":

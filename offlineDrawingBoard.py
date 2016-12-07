@@ -60,7 +60,7 @@ class board:
             self.userPosition.y = 0
             val = -4
 
-        #update user position on board
+        #more the user icon/character
         self.theboard[self.userPosition.x][self.userPosition.y] = self.user
         return val
     
