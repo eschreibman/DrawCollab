@@ -5,6 +5,8 @@ class protocol_message:
         TYPE_UPDATE_BOARD = 2
         TYPE_P2P_NOTE = 3
         TYPE_P2P_REQUEST = 4
+        TYPE_P2P_RESPONSE = 5
+        TYPE_P2P_INFO = 6
         
         SENTINEL = -1
 
@@ -54,15 +56,14 @@ class protocol_message:
 
         
         @staticmethod
-        def construct_peer_to_peer_notification_data(neighbors):
+        def construct_peer_to_peer_info_data(neighbors):
                 data = chr(len(neighbors))
                 
                 for neighbor in neighbors:
                         print neighbor
-                        peer_name = neighbor[1].getpeername()
-                        data += chr(len(peer_name[0]))
-                        data += str(peer_name[0]).ljust(protocol_message.ADDR_SPACE)
-                        data += str(peer_name[1]).ljust(protocol_message.PORT_SPACE)
+                        data += chr(len(neighbor['addr']))
+                        data += str(neighbor['addr']).ljust(protocol_message.ADDR_SPACE)
+                        data += str(neighbor['port']).ljust(protocol_message.PORT_SPACE)
 
                 return data
 
@@ -75,6 +76,8 @@ class protocol_message:
         def peer_to_peer_note_neighbor_addr(self, neighbor):
                 if self.type != protocol_message.TYPE_P2P_NOTE:
                         Exception.throw
+
+                print neighbor
                 addr_start_index = 1 + neighbor*protocol_message.NEIGHBOR_GAP + 1
                 addr_end_index = ord(self.message[addr_start_index-1]) + addr_start_index
                 return self.message[addr_start_index:addr_end_index]
@@ -86,3 +89,22 @@ class protocol_message:
                 start_port = 1+neighbor*protocol_message.NEIGHBOR_GAP+1+protocol_message.ADDR_SPACE
                 end_port = start_port + protocol_message.PORT_SPACE
                 return int(self.message[start_port:end_port])
+
+        @staticmethod
+        def construct_p2p_response_data(addr, port):
+                data = str(addr).ljust(protocol_message.ADDR_SPACE)
+                data += str(port).ljust(protocol_message.PORT_SPACE)
+
+                return data
+
+        def p2p_response_data_address(self):
+                if self.type != protocol_message.TYPE_P2P_RESPONSE:
+                        Exception.throw
+
+                return self.message[0:protocol_message.ADDR_SPACE]
+
+        def p2p_response_data_port(self):
+                if self.type != protocol_message.TYPE_P2P_RESPONSE:
+                        Exception.throw
+
+                return self.message[protocol_message.ADDR_SPACE:protocol_message.ADDR_SPACE+protocol_message.PORT_SPACE]

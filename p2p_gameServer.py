@@ -38,7 +38,7 @@ def main():
     masterBoard = board(Width, Height)
     clients = []
     message_id = 0
-
+    
     client_info_list = []
     num_users = 0
 
@@ -88,6 +88,17 @@ def main():
                 if(message_rec.type == protocol_message.TYPE_P2P_REQUEST):
                     p2p = p2p_mode(client_info_list)
                     p2p.send_peer_to_peer_notification()
+
+                if(message_rec.type == protocol_message.TYPE_P2P_RESPONSE):
+                    user_id_index = next(index for (index, d) in enumerate(client_info_list) if d['connection'] == clientInList)
+                    connection = {}
+                    connection['user_id'] = client_info_list[user_id_index]['user_id']
+                    connection['addr'] = message_rec.p2p_response_data_address()
+                    connection['port'] = message_rec.p2p_response_data_port()
+                    p2p.add_connection_data(connection.copy())
+                    if (p2p.ready()):
+                        p2p.send_peer_to_peer_info()
+                    
     clientInList.close()
     server.close()
 

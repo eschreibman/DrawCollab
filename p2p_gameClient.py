@@ -2,6 +2,7 @@ import sys, socket, getch, select, time, getopt
 from p2p_protocol_message import protocol_message
 from drawing_board import board, position
 import curses
+from peer_to_peer import peer
 
 #have to do pip install py-getch
 #run program either python gameClient.py or pythong gameClient.py -p portnum
@@ -66,7 +67,9 @@ def debugMsg(str, offset, stdscr):
 def main(stdscr):
         
         port = 9071
-    
+
+        in_p2p_mode = False
+        
         try:
                 options, args = getopt.getopt(sys.argv[1:], 'p:')
                 port_selection = filter(lambda x: "-p" in x, options)
@@ -95,6 +98,8 @@ def main(stdscr):
         server.send(dataSend.collapsed())
         z = 0
         while True:
+                #if in_p2p_mode
+                
                 rlist, wlist, xlist = select.select([server], [], [], 0)
                 for item in rlist: 
                         if item == server:
@@ -120,10 +125,12 @@ def main(stdscr):
                                         #printBoardClient(canvas, stdscr)
                                 if(message_rec.type == protocol_message.TYPE_P2P_NOTE):
                                         debugMsg("Peer to peer mode", 0, stdscr)
-                                        debugMsg(message_rec.peer_to_peer_note_neighbor_addr(0), 1, stdscr)
-                                        debugMsg(str(message_rec.peer_to_peer_note_neighbor_port(0)), 2, stdscr)
-                                        debugMsg(message_rec.peer_to_peer_note_neighbor_addr(1), 3, stdscr)
-                                        debugMsg(str(message_rec.peer_to_peer_note_neighbor_port(1)), 4, stdscr)
+                                        
+                                        in_p2p_mode = True
+                                        p2p_connection = peer()
+                                        server.send(p2p_connection.response_message().collapsed())
+                                        
+                                        
                                         
                 #get user input through the keyboard
                 key = getInput(stdscr)
