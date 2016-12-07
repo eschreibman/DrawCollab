@@ -70,8 +70,27 @@ class peer:
         self.peer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.peer.bind(('', 0))
         self.peer.listen(5)
+        self.neighbors = []
 
     def response_message(self):
         dataSend = protocol_message.construct_p2p_response_data(self.peer.getsockname()[0], self.peer.getsockname()[1])
         message_send = protocol_message(protocol_message.TYPE_P2P_RESPONSE, len(dataSend), dataSend)
         return message_send
+
+    def add_neighbors(self, info_message):
+        for i in range(info_message.peer_to_peer_info_num_neighbors()):
+            self.neighbors.append(socket.socket(socket.AF_INET, socket.SOCK_STREAM))
+            self.neighbors[i].connect((info_message.peer_to_peer_info_neighbor_addr(i), info_message.peer_to_peer_info_neighbor_port(i)))
+
+    def num_neighbors(self):
+        return len(self.neighbors)
+
+    def neighbor(self, num):
+        return self.neighbors[num]
+
+    def connection(self):
+        return self.peer
+
+    def notify_neighbors(self, message):
+        for neighbor in self.neighbors:
+            neighbor.send(message)

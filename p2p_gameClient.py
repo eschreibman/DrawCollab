@@ -91,6 +91,8 @@ def main(stdscr):
         #server setup
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.connect(('127.0.0.1', port)) 
+
+        peer_connections = [server]
         
         #send new user message
         dataString = "New User"
@@ -98,11 +100,21 @@ def main(stdscr):
         server.send(dataSend.collapsed())
         z = 0
         while True:
-                #if in_p2p_mode
-                
-                rlist, wlist, xlist = select.select([server], [], [], 0)
+                if in_p2p_mode:
+                        Connections, wlist, xlist = select.select([p2p_connection.connection()], [], [], 0.05)
+                        for Connection in Connections:
+                                Peer, info = Connection.accept()
+                                peer_connections.append(Peer)
+
+                read_list = []
+                if not in_p2p_mode:
+                        read_list = [server]
+                else:
+                        read_list = peer_connections
+                 
+                rlist, wlist, xlist = select.select(read_list, [], [], 0)
                 for item in rlist: 
-                        if item == server:
+                        if item == server or True:
                                 dataRec = server.recv(1024)
                                 message_rec = protocol_message.message_from_collapsed(dataRec)
                                 
@@ -126,11 +138,15 @@ def main(stdscr):
                                 if(message_rec.type == protocol_message.TYPE_P2P_NOTE):
                                         debugMsg("Peer to peer mode", 0, stdscr)
                                         
-                                        in_p2p_mode = True
+                                        #in_p2p_mode = True
                                         p2p_connection = peer()
                                         server.send(p2p_connection.response_message().collapsed())
-                                        
-                                        
+                                if(message_rec.type == protocol_message.TYPE_P2P_INFO):
+                                        p2p_connection.add_neighbors(message_rec)
+                                        in_p2p_mode = True
+                        else:
+                                dataRec = item.recv(1024)
+                                debugMsg("Recieved p2p message", 1, stdscr)
                                         
                 #get user input through the keyboard
                 key = getInput(stdscr)
@@ -143,7 +159,10 @@ def main(stdscr):
                         canvas.moveUser(newPos)
                         boardString = canvas.boardToString()
                         message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, len(boardString), boardString)
-                        server.send(message_send.collapsed())
+                        if not in_p2p_mode:
+                                server.send(message_send.collapsed())
+                        else:
+                                p2p_connection.notify_neighbors(message_send.collapsed())
                 if(key == ord("p")):
                         #Request p2p mode
                         message_send = protocol_message(protocol_message.TYPE_P2P_REQUEST, 0, "")

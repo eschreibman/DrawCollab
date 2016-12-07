@@ -67,14 +67,14 @@ class protocol_message:
 
                 return data
 
-        def peer_to_peer_note_num_neighbors(self):
-                if self.type != protocol_message.TYPE_P2P_NOTE:
+        def peer_to_peer_info_num_neighbors(self):
+                if self.type != protocol_message.TYPE_P2P_INFO:
                         Exception.throw
 
                 return ord(self.message[0])
 
-        def peer_to_peer_note_neighbor_addr(self, neighbor):
-                if self.type != protocol_message.TYPE_P2P_NOTE:
+        def peer_to_peer_info_neighbor_addr(self, neighbor):
+                if self.type != protocol_message.TYPE_P2P_INFO:
                         Exception.throw
 
                 print neighbor
@@ -82,8 +82,8 @@ class protocol_message:
                 addr_end_index = ord(self.message[addr_start_index-1]) + addr_start_index
                 return self.message[addr_start_index:addr_end_index]
 
-        def peer_to_peer_note_neighbor_port(self, neighbor):
-                if self.type != protocol_message.TYPE_P2P_NOTE:
+        def peer_to_peer_info_neighbor_port(self, neighbor):
+                if self.type != protocol_message.TYPE_P2P_INFO:
                         Exception.throw
 
                 start_port = 1+neighbor*protocol_message.NEIGHBOR_GAP+1+protocol_message.ADDR_SPACE
