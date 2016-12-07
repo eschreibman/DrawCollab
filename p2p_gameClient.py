@@ -115,7 +115,7 @@ def main(stdscr):
                 rlist, wlist, xlist = select.select(read_list, [], [], 0)
                 for item in rlist: 
                         if item == server or True:
-                                dataRec = server.recv(1024)
+                                dataRec = item.recv(1024)
                                 message_rec = protocol_message.message_from_collapsed(dataRec)
                                 
                                 if(message_rec.type == protocol_message.TYPE_WELCOME):
@@ -129,12 +129,16 @@ def main(stdscr):
                                         printBoardClient(canvas, stdscr)
 
                                 if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
+                                        debugMsg("Updating board", z, stdscr)
+                                        z += 1
                                         canvas.stringToBoardFromServer(message_rec.message)
                                         printBoardClient(canvas, stdscr)
                                         # if(canvas.stringToBoardFromServer(message_rec.message) == -1):
                                         #         debugMsg("error recv board", z, stdscr)
                                         #         z += 1
                                         #printBoardClient(canvas, stdscr)
+                                        if in_p2p_mode:
+                                                p2p_connection.forward_to_neighbors(message_rec)
                                 if(message_rec.type == protocol_message.TYPE_P2P_NOTE):
                                         debugMsg("Peer to peer mode", 0, stdscr)
                                         
@@ -162,7 +166,7 @@ def main(stdscr):
                         if not in_p2p_mode:
                                 server.send(message_send.collapsed())
                         else:
-                                p2p_connection.notify_neighbors(message_send.collapsed())
+                                p2p_connection.notify_neighbors(message_send)
                 if(key == ord("p")):
                         #Request p2p mode
                         message_send = protocol_message(protocol_message.TYPE_P2P_REQUEST, 0, "")

@@ -52,8 +52,8 @@ def main():
             num_users += 1
             print clients
             # Test peer to peer mode init on every new client
-            print "P2P"
-            p2p_mode(client_info_list)
+            #print "P2P"
+            #p2p_mode(client_info_list)
 
         clientsList = []
         try:

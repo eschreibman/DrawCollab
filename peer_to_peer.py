@@ -4,6 +4,7 @@ import socket
 class p2p_mode:
 
     def __init__(self, peers):
+        
         print "in p2p init"
         self.peers = []
         #For now just make an arbitrary ring
@@ -48,7 +49,7 @@ class p2p_mode:
             
     def send_peer_to_peer_info(self):
         for peer in self.peers:
-            dataSend = protocol_message.construct_peer_to_peer_info_data(peer['neighbors'])
+            dataSend = protocol_message.construct_peer_to_peer_info_data(peer['neighbors'], peer['user_id'])
             message_send = protocol_message(protocol_message.TYPE_P2P_INFO, len(dataSend), dataSend)        
             peer['connection'].send(message_send.collapsed())
             
@@ -67,10 +68,13 @@ class p2p_mode:
 class peer:
 
     def __init__(self):
+        self.f = open('debug', 'w')
         self.peer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.peer.bind(('', 0))
         self.peer.listen(5)
+        self.user_id = -1
         self.neighbors = []
+        self.neighbor_ids = []
 
     def response_message(self):
         dataSend = protocol_message.construct_p2p_response_data(self.peer.getsockname()[0], self.peer.getsockname()[1])
@@ -78,9 +82,13 @@ class peer:
         return message_send
 
     def add_neighbors(self, info_message):
+        self.user_id = info_message.peer_to_peer_info_reciever_id()
         for i in range(info_message.peer_to_peer_info_num_neighbors()):
             self.neighbors.append(socket.socket(socket.AF_INET, socket.SOCK_STREAM))
-            self.neighbors[i].connect((info_message.peer_to_peer_info_neighbor_addr(i), info_message.peer_to_peer_info_neighbor_port(i)))
+            addr = info_message.peer_to_peer_info_neighbor_addr(i)
+            port = info_message.peer_to_peer_info_neighbor_port(i)
+            self.neighbors[i].connect((addr, port))
+            self.neighbor_ids.append(info_message.peer_to_peer_info_neighbor_id(i))
 
     def num_neighbors(self):
         return len(self.neighbors)
@@ -92,5 +100,19 @@ class peer:
         return self.peer
 
     def notify_neighbors(self, message):
+        message.update_originator(self.user_id)
         for neighbor in self.neighbors:
-            neighbor.send(message)
+            neighbor.send(message.collapsed())
+
+    def forward_to_neighbors(self, message):
+        
+        message.add_visit(self.user_id)
+        for i in range(len(self.neighbors)):
+            id = self.neighbor_ids[i]
+            self.f.write("len "+str(len(message.visited))+"\n")
+            self.f.write("visited pre collapse"+message.collapsed()[3:protocol_message.MESSAGE_OFFSET]+"\n")
+            post = protocol_message.message_from_collapsed(message.collapsed())
+            self.f.write("len post "+str(len(post.visited))+"\n")
+            self.f.write("visited post collapse"+ post.collapsed()[3:protocol_message.MESSAGE_OFFSET] +"\n")
+            if not id in message.visited:
+                self.neighbors[i].send(message.collapsed())
