@@ -3,6 +3,7 @@ from offlineProtocol import protocol_message
 from offlineDrawingBoard import board, position
 from offlineUser import user, userList
 import curses
+import random
 
 #have to do pip install py-getch
 #run program either python gameClient.py or pythong gameClient.py -p portnum
@@ -109,22 +110,20 @@ def getUserInputedName(stdscr):
 
 def userInitialization(clientName, myUserList, canvas):
     #get our assigned userID num from the list
+    # print "in user init, the current user list: "
+    # print(myUserList.listToString())
     assignedID = myUserList.getUserNum(clientName)
     #get the initial information about our name, ID, and pos
     userSelf = myUserList.getUserByName(clientName)
     canvas.addUser(assignedID, clientName)
+    # print "end of user init, the current user list: "
+    # print(myUserList.listToString())
+    return userSelf
 
         
-def debugMsg(str, offset, stdscr):
-    j = (offset % 10) + 8
-    for i in range(len(str)):
-        if(i > 20):
-            j += 1
-            return
-        stdscr.addstr(j, i, str[i])
-
 def main(stdscr):
-        
+    global z
+    z = 0 #DEBUG
     port = getPort()
 
     #server setup
@@ -155,7 +154,7 @@ def main(stdscr):
     #send new user message, sends the username and 0 as the id
     dataSend = protocol_message(protocol_message.TYPE_USER_JOIN, 0, len(clientName), clientName)
     server.send(dataSend.collapsed())
-    z = 0 #DEBUG
+    
     
     
     while True:
@@ -175,42 +174,162 @@ def main(stdscr):
                     message_rec = protocol_message.message_from_collapsed(dataRec)
                     
                     if(message_rec.type == protocol_message.TYPE_WELCOME_NEW):
-                        debugMsg("welcome new", z, stdscr)
-                        z += 1
+                        debugMsg("welcome new", stdscr)
+                        
                         #populate the userlist with information from the server
                         myUserList.stringToUserList(message_rec.message)
-                        userInitialization(clientName, myUserList, canvas)
+                        userSelf = userInitialization(clientName, myUserList, canvas)
                         printBoardClient(canvas, stdscr)
+                        # debugMsg("end of welcome new", stdscr)
+                        # debugMsg(userSelf.toString(), stdscr)
 
                     if(message_rec.type == protocol_message.TYPE_WELCOME_BACK):
-                        debugMsg("welcome back", z, stdscr)
-                        z += 1
+                        debugMsg("welcome back", stdscr)
                         #populate the userlist with information from the server
                         myUserList.stringToUserList(message_rec.message)
                         userInitialization(clientName, myUserList, canvas)
                         printBoardClient(canvas, stdscr)
                 
                     if(message_rec.type == protocol_message.TYPE_SERVER_UPDATE_POS):
-                        myUserList.stringToUserList(message_rec.message)
-                        debugmsg = myUserList.listToString()
+                        debugMsg("server update pos", stdscr)
+                        #debugMsg(message_rec.message, stdscr)
+                        val = myUserList.stringToUserList(message_rec.message)
+                        # debugmsg = myUserList.listToString()
+                        canvas.clearBoard()
+                        x = canvas.updateBoardWithUserList(myUserList)
                         printBoardClient(canvas, stdscr)
-                        debugMsg(debugmsg, z, stdscr)
-                        z += 1
+                        # debugMsg(debugmsg, stdscr)
+                        # debugMsg(str(x), stdscr)
+                        # debugMsg(str(val), stdscr)
                                     
         #get user input through the keyboard
         key = getInput(stdscr)
        
         if(key == ord("w") or key == ord("s") or key == ord("a") or key == ord("d") or key == curses.KEY_UP or key == curses.KEY_DOWN or key == curses.KEY_LEFT or key == curses.KEY_RIGHT):
             #update our position and send it
+            # debugMsg("user self top of kat fnc", stdscr)
+            # debugMsg(userSelf.toString(), stdscr)
             newPos = posDelta(key)
             canvas.moveUser(newPos)
             userSelf.pos = canvas.userPosition
             posToSend = userSelf.toString()
+            # debugMsg("user self position to send", stdscr)
+            # debugMsg(posToSend, stdscr)
             message_send = protocol_message(protocol_message.TYPE_CLIENT_UPDATE_POS, userSelf.userID, len(posToSend), posToSend)
             server.send(message_send.collapsed())
 
+# def main():
+#     global z
+#     z = 0 #DEBUG
+#     port = getPort()
+
+#     #server setup
+#     global server 
+#     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+#     # cursesInit()
+#     # stdscr.nodelay(True)
+#     # clientName = startScreen(stdscr)
+#     clientName = random.choice("abcdefghijklmnopqrstuvwxyz")
+#     print "client name: " + clientName
+#     #board setup
+#     Height = 5
+#     Width = 10
+#     canvas = board(Width, Height)
+
+#     #user and userlist setup
+#     myUserList = userList()
+#     userSelf = user()
+#     userSelf.updateUsername(clientName)
+
+#     try:
+#         server.connect(('127.0.0.1', port))
+#     except socket.error as msg:
+#         exitmsg = "Unable to connect to port " + str(port) + "...quiting."
+#         # shutdown_client(exitmsg)
+        
+     
+    
+#     #send new user message, sends the username and 0 as the id
+#     dataSend = protocol_message(protocol_message.TYPE_USER_JOIN, 0, len(clientName), clientName)
+#     server.send(dataSend.collapsed())
+    
+    
+    
+#     while True:
+#         try:
+#             rlist, wlist, xlist = select.select([server], [], [], 0)
+#         except socket.error as msg:
+#             exitmsg = "Select failed...quiting."
+#             # shutdown_client(exitmsg)
+#         for item in rlist: 
+#                 if item == server:
+#                     try:
+#                         dataRec = server.recv(1024)
+#                     except socket.error as msg:
+#                         exitmsg = "Connection reset by peer...quiting."
+#                         # shutdown_client(exitmsg)
+                    
+#                     message_rec = protocol_message.message_from_collapsed(dataRec)
+                    
+#                     if(message_rec.type == protocol_message.TYPE_WELCOME_NEW):
+#                         # debugMsg("welcome new", stdscr)
+#                         print("welcome new")
+#                         #populate the userlist with information from the server
+#                         myUserList.stringToUserList(message_rec.message)
+#                         userSelf = userInitialization(clientName, myUserList, canvas)
+#                         posToSend = userSelf.toString()
+#                         print "user at end of welcome " + posToSend
+#                         # printBoardClient(canvas, stdscr)
+#                         # debugMsg("end of welcome new", stdscr)
+#                         # debugMsg(userSelf.toString(), stdscr)
+
+#                     if(message_rec.type == protocol_message.TYPE_WELCOME_BACK):
+#                         # debugMsg("welcome back", stdscr)
+#                         #populate the userlist with information from the server
+#                         myUserList.stringToUserList(message_rec.message)
+#                         userInitialization(clientName, myUserList, canvas)
+#                         # printBoardClient(canvas, stdscr)
+                
+#                     if(message_rec.type == protocol_message.TYPE_SERVER_UPDATE_POS):
+#                         # debugMsg("server update pos", stdscr)
+#                         #debugMsg(message_rec.message, stdscr)
+#                         print("update board pos")
+#                         val = myUserList.stringToUserList(message_rec.message)
+#                         debugmsg = myUserList.listToString()
+#                         canvas.clearBoard()
+#                         x = canvas.updateBoardWithUserList(myUserList)
+#                         #printBoardClient(canvas, stdscr)
+#                         # debugMsg(debugmsg, stdscr)
+#                         # debugMsg(str(x), stdscr)
+#                         # debugMsg(str(val), stdscr)
+                                    
+#         #get user input through the keyboard
+#         # key = getInput(stdscr)
+#         key = raw_input("Please enter something: ")
+       
+#         #if(key == ord("w") or key == ord("s") or key == ord("a") or key == ord("d") ):# or key == curses.KEY_UP or key == curses.KEY_DOWN or key == curses.KEY_LEFT or key == curses.KEY_RIGHT):
+#         if(key == "w" or key == "s" or key == "a" or key == "d"):
+#             #update our position and send it
+#             # debugMsg("user self top of kat fnc", stdscr)
+#             # debugMsg(userSelf.toString(), stdscr)
+#             print "got wasd"
+#             newPos = posDelta(key)
+#             canvas.moveUser(newPos)
+#             userSelf.pos = canvas.userPosition
+#             posToSend = userSelf.toString()
+#             print "string sent to server: " + posToSend
+#             # debugMsg("user self position to send", stdscr)
+#             # debugMsg(posToSend, stdscr)
+#             message_send = protocol_message(protocol_message.TYPE_CLIENT_UPDATE_POS, userSelf.userID, len(posToSend), posToSend)
+#             server.send(message_send.collapsed())
+#         if(key == "q"):
+#             exit()
+
+
 
 def shutdown_client(exitMessage):
+        global server
         curses.echo()  
         curses.nocbreak()                                                                          
         curses.endwin()
@@ -219,7 +338,17 @@ def shutdown_client(exitMessage):
         print exitMessage
         exit()
 
+def debugMsg(str, stdscr):
+    global z
+    j = (z % 8) + 5
+    for i in range(len(str)):
+        if(i > 30):
+            z += 1
+            return
+        stdscr.addstr(j, i, str[i])
+    z += 1
+
 #when the program is run, call the above "main" function
-if __name__ == "__main__":
+if __name__ == "__main__": #main()
         curses.wrapper(main)
 

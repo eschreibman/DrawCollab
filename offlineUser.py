@@ -21,17 +21,28 @@ class user:
         self.pos = position
 
     def toString(self):
+        f = open('debuglog2', 'w')
         string = self.name
         string += " "
         string += str(self.userID)
         string += " "
         string += self.pos.toString()
+        f.write(string + "\n")
+        f.close()
         return string
 
     def fromString(self, string):
+        # f = open('debuglog', 'w')
+        # f.write(string);f.write("\n")
         self.name, ID, x, y = string.split(" ")
+
         self.userID = int(ID)
+        # f.write("ID as int: "); f.write(str(self.userID)); f.write("\n")
         self.pos.updatePos(int(x), int(y))
+        # f.close()
+        if(self.userID == 1):
+            return -1
+        
 
 class userList:
     def __init__(self):
@@ -98,7 +109,7 @@ class userList:
 
     def stringToUserList(self, str):
         strlen = len(str)
-        i = 0;
+        i = 0; val = 0;
         while(i < strlen):
             oneUser = ""; username = ""; ID = ""; x = ""; y = ""
             if(str[i] != "["):
@@ -106,9 +117,19 @@ class userList:
                     oneUser += str[i]
                     i += 1
                 tempusr = user()
-                tempusr.fromString(oneUser)
+                if(tempusr.fromString(oneUser) == -1):
+                    val = -1
                 self.addOrUpdateUser(tempusr)
             i += 1
+        return val
+
+    def printList(self):
+        for keys,values in self.theDictionary.items():
+            print(keys)
+            print(values.name)
+            print(str(values.userID))
+            print(str(values.pos.toString()))
                 
+
  
 
