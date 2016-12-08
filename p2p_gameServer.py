@@ -1,7 +1,5 @@
 import sys, socket, select, getopt
-from offlineProtocol import protocol_message
-from offlineDrawingBoard import board
-from protocol_message import protocol_message
+from p2p_protocol_message import protocol_message
 from drawing_board import board
 from peer_to_peer import p2p_mode
 
@@ -18,20 +16,29 @@ def usage():
 
 
 def main():
-    port = getPort()
-    #socket setup
+    port = 9071
+        
+    try:
+        options, args = getopt.getopt(sys.argv[1:], 'p:')
+        port_selection = filter(lambda x: "-p" in x, options)
+        if len(port_selection) > 0:
+            port = int(port_selection[0][1])
+    except (getopt.GetoptError, IndexError):
+        usage()
+        exit()
+
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    print 'Socket created'
+
     server.bind(('', port))
     server.listen(5)
 
     Height = 5
     Width = 10
     masterBoard = board(Width, Height)
-    masterBoard.addUserServer()
-    recvBoard = board(Width, Height)
     clients = []
     message_id = 0
-
+    
     client_info_list = []
     num_users = 0
 
@@ -45,8 +52,8 @@ def main():
             num_users += 1
             print clients
             # Test peer to peer mode init on every new client
-            print "P2P"
-            p2p_mode(client_info_list)
+            #print "P2P"
+            #p2p_mode(client_info_list)
 
         clientsList = []
         try:
@@ -67,42 +74,34 @@ def main():
                     message_send = protocol_message(protocol_message.TYPE_WELCOME, len(dataSend), dataSend)
                     clientInList.send(message_send.collapsed())
 
-                    masterBoard.addUser(client_info_list[user_id_index]['user_id'])
-
-                if(message_rec.type == protocol_message.TYPE_CUR_BOARD):
-                    curBoardState = protocol_message(protocol_message.TYPE_CUR_BOARD, len(masterBoard.boardToString()), masterBoard.boardToString())
-                    clientInList.send(curBoardState.collapsed())
-                    
-
                 if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
                     print("Got update board")
                     print(message_rec.message)
-                    recvBoard.stringToBoard(message_rec.message)
-                    recvBoard.findMyUser()
-                    masterBoard.mergeBoards(recvBoard)
                     #send the board back
-                    dataSend = masterBoard.boardToString()
+                    dataSend = message_rec.message
+                    #message_id += 1
                     message_send = protocol_message(protocol_message.TYPE_UPDATE_BOARD, len(dataSend), dataSend)
                     notify_all_clients(clients, message_send)
                 if(message_rec.type == protocol_message.SENTINEL):
                     clients.remove(clientInList)
                     # TODO add this client to a waiting to be reconnected list
+                if(message_rec.type == protocol_message.TYPE_P2P_REQUEST):
+                    p2p = p2p_mode(client_info_list)
+                    p2p.send_peer_to_peer_notification()
+
+                if(message_rec.type == protocol_message.TYPE_P2P_RESPONSE):
+                    user_id_index = next(index for (index, d) in enumerate(client_info_list) if d['connection'] == clientInList)
+                    connection = {}
+                    connection['user_id'] = client_info_list[user_id_index]['user_id']
+                    connection['addr'] = message_rec.p2p_response_data_address()
+                    connection['port'] = message_rec.p2p_response_data_port()
+                    p2p.add_connection_data(connection.copy())
+                    if (p2p.ready()):
+                        p2p.send_peer_to_peer_info()
+                    
     clientInList.close()
     server.close()
 
-#see if the user has run the program with a designated port number
-#if not, set the default port number
-def getPort():
-    port = 9071
-    try:
-        options, args = getopt.getopt(sys.argv[1:], 'p:')
-        port_selection = filter(lambda x: "-p" in x, options)
-        if len(port_selection) > 0:
-            port = (int(port_selection[0][1]))
-    except (getopt.GetoptError, IndexError):
-        usage()
-        exit()
-    return port
 
 
 #when the program is run, call the above "main" function
