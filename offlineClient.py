@@ -55,7 +55,9 @@ def posDelta(dir):
 
 
 #print to the curses string all the board characters with spaces in between
-def printBoardClient(canvas, stdscr):
+def printBoardClient(canvas, myUserList, stdscr):
+    canvas.clearBoard()
+    canvas.updateBoardWithUserList(myUserList)
     k = 0; l = 0;
     for i in range(canvas.height):
         k = 0
@@ -179,7 +181,9 @@ def main(stdscr):
                         #populate the userlist with information from the server
                         myUserList.stringToUserList(message_rec.message)
                         userSelf = userInitialization(clientName, myUserList, canvas)
-                        printBoardClient(canvas, stdscr)
+                        debugMsg("init user " + userSelf.toString(), stdscr)
+                        debugMsg("user list " + myUserList.listToString(), stdscr)
+                        printBoardClient(canvas, myUserList, stdscr)
                         # debugMsg("end of welcome new", stdscr)
                         # debugMsg(userSelf.toString(), stdscr)
 
@@ -187,17 +191,18 @@ def main(stdscr):
                         debugMsg("welcome back", stdscr)
                         #populate the userlist with information from the server
                         myUserList.stringToUserList(message_rec.message)
-                        userInitialization(clientName, myUserList, canvas)
-                        printBoardClient(canvas, stdscr)
+                        userSelf = userInitialization(clientName, myUserList, canvas)
+                        debugMsg("init user " + userSelf.toString(), stdscr)
+                        debugMsg("user list " + myUserList.listToString(), stdscr)
+                        printBoardClient(canvas, myUserList, stdscr)
                 
                     if(message_rec.type == protocol_message.TYPE_SERVER_UPDATE_POS):
                         debugMsg("server update pos", stdscr)
                         #debugMsg(message_rec.message, stdscr)
                         val = myUserList.stringToUserList(message_rec.message)
                         # debugmsg = myUserList.listToString()
-                        canvas.clearBoard()
-                        x = canvas.updateBoardWithUserList(myUserList)
-                        printBoardClient(canvas, stdscr)
+                        
+                        printBoardClient(canvas, myUserList, stdscr)
                         # debugMsg(debugmsg, stdscr)
                         # debugMsg(str(x), stdscr)
                         # debugMsg(str(val), stdscr)
@@ -329,7 +334,6 @@ def main(stdscr):
 
 
 def shutdown_client(exitMessage):
-        global server
         curses.echo()  
         curses.nocbreak()                                                                          
         curses.endwin()
