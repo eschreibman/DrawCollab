@@ -8,7 +8,6 @@ from offlineUser import user, userList
 
 
 def notify_all_clients(clients, message):
-    print("Notifying all clients")
     for client in clients:
         client.send(message.collapsed())
 
@@ -20,14 +19,13 @@ def main():
     port = getPort()
     #socket setup
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(('', port))
+    try:
+        server.bind(('', port))
+    except socket.error:
+        print "Address already in use...quitting"
+        exit()
     server.listen(5)
 
-    #Height = 5
-    #Width = 10
-    #masterBoard = board(Width, Height)
-    #masterBoard.addUserServer()
-    #recvBoard = board(Width, Height)
     clients = []
     message_id = 0
 
@@ -36,26 +34,25 @@ def main():
     num_users = 0
 
     while True:
-        Connections, wlist, xlist = select.select([server], [], [], 0.05)
+        try:
+            Connections, wlist, xlist = select.select([server], [], [], 0.05)
+        except (select.error, KeyboardInterrupt):
+            print "\nQuitting..."
+            exit()
         
         for Connection in Connections:
             client, Informations = Connection.accept()
             clients.append(client)
-            #client_info_list.append({'user_id': num_users, 'connection': client, 'connected': True})
-            #num_users += 1
-            #print "num users: " + str(num_users)
-            #print clients
            
         clientsList = []
         try:
             clientsList, wlist, xlist = select.select(clients, [], [], 0.05)
-        except select.error:
-            pass
+        except (select.error, KeyboardInterrupt):
+            print "\nQuitting..."
+            exit()
         else:
             for clientInList in clientsList:
                 dataRec = clientInList.recv(1024)
-                #print "Got: "
-                #print dataRec
                 message_rec = protocol_message.message_from_collapsed(dataRec)
                 if(message_rec.type == protocol_message.TYPE_USER_JOIN):
                     
@@ -72,36 +69,23 @@ def main():
                         masterClientList.addUserDefault(username, num_users)
                         num_users += 1
                         dataSend = masterClientList.listToString()
-                        print "list to string: " + dataSend
                         message_send = protocol_message(protocol_message.TYPE_WELCOME_NEW, protocol_message.SERVER, len(dataSend), dataSend)
 
                     clientInList.send(message_send.collapsed())
 
-                # if(message_rec.type == protocol_message.TYPE_CUR_BOARD):
-                #     print "Get the current board state"
-                    #curBoardState = protocol_message(protocol_message.TYPE_CUR_BOARD, 0, len(masterBoard.boardToString()), masterBoard.boardToString())
-                    #clientInList.send(curBoardState.collapsed())
-                    
                 if(message_rec.type == protocol_message.TYPE_CLIENT_UPDATE_POS):
                     #a client updated their position
-                    print("Client updated their position")
-                    print(message_rec.message)
-                    #update the client list
-                    #newPos = position(0, 0)
                     msgFromUser = user()
                     msgFromUser.fromString(message_rec.message)
                     masterClientList.addOrUpdateUser(msgFromUser)
-                    #newPos.stringToPosition(message_rec.message)
                     #now send the updated client list out
                     dataSend = masterClientList.listToString()
-                    print "list to string to send: " + dataSend
                     message_send = protocol_message(protocol_message.TYPE_SERVER_UPDATE_POS, protocol_message.SERVER, len(dataSend), dataSend)
                     notify_all_clients(clients, message_send)
 
                 if(message_rec.type == protocol_message.SENTINEL):
                     print "Client left"
                     clients.remove(clientInList)
-                    # TODO add this client to a waiting to be reconnected list
     clientInList.close()
     server.close()
 

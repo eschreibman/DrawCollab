@@ -32,16 +32,32 @@ class user:
         return string
 
     def fromString(self, string):
-        # f = open('debuglog', 'w')
-        # f.write(string);f.write("\n")
-        self.name, ID, x, y = string.split(" ")
+        #print "in from string, got string: " + string
+        try:
+            self.name, ID, x, y = string.split(" ")
+            self.userID = int(ID)
+            self.pos.updatePos(int(x), int(y))
+        except ValueError:
+            self.manualParse(string)
+    
+    #error handling for if a client sends a string too long
+    #such as in the case where they move too quickly (keyboard input is too fast) and two sends become one message
+    def manualParse(self, string):
+        i = 0
+        numelm = 0
+        strlen = len(string)
+        tempstr = ""
+        while(i < strlen):
+            if(ord(string[i]) == 0 or ord(string[i]) == 4):
+                break
+            tempstr += string[i]
+            i += 1
 
+        self.name, ID, x, y = tempstr.split(" ")
         self.userID = int(ID)
-        # f.write("ID as int: "); f.write(str(self.userID)); f.write("\n")
         self.pos.updatePos(int(x), int(y))
-        # f.close()
-        if(self.userID == 1):
-            return -1
+
+
         
 
 class userList:

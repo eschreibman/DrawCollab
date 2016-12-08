@@ -2,7 +2,7 @@ import sys
 from position_class import position
 from offlineUser import user, userList
 class board:
-    possibleUsers = ["^", "&", "%", "$"]
+    possibleUsers = ["^", "&", "%", "$", "#"]
     anyUser = "@"
     emptySpace = "_"
 
@@ -21,7 +21,7 @@ class board:
         if(userNum < len(self.possibleUsers)):
             self.user = self.possibleUsers[userNum]
         else:
-            self.user = self.possibleUsers[len(self.possibleUsers) - 1]
+            self.user = self.anyUser
         self.theboard[self.userPosition.x][self.userPosition.y] = self.user
         
     def clearBoard(self):
@@ -44,8 +44,6 @@ class board:
         val = 0
         oldPosX = self.userPosition.x
         oldPosY = self.userPosition.y
-        #clear where the user cursor used to be
-        #self.theboard[oldPosX][oldPosY] = self.emptySpace
         #update user position
         self.userPosition.x += dir.x
         self.userPosition.y += dir.y
