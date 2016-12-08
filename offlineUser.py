@@ -35,7 +35,6 @@ class user:
 
 class userList:
     def __init__(self):
-        #self.theList = []
         #assumes unique user names!
         self.theDictionary = {}
 
@@ -46,20 +45,15 @@ class userList:
         p = position(0, 0)
         usr = user()
         usr.setNameIDPos(username, ID, p)
-        #self.theList.append(usr)
         self.theDictionary[username] = usr
 
     def addUserWithPosition(self, username, ID, x, y):
         p = position(x, y)
         usr = user()
         usr.setNameIDPos(username, ID, p)
-        #self.theList.append(usr)
         self.theDictionary[username] = usr
 
     def updateUserPosition(self, usr, x, y):
-        # for i in self.theList:
-        #     if(i.name == usr.name):
-        #         i.pos.updatePos(x, y)
         if(usr.name in self.theDictionary):
             self.theDictionary[usr.name].pos.updatePos(x, y)
 
@@ -68,19 +62,11 @@ class userList:
             self.theDictionary[usr.name].pos = position
 
     def userExists(self, username):
-        # for i in self.theList:
-        #     if(i.name == username):
-        #         return True
-        # return False
         if(username in self.theDictionary):
             return True
         return False
 
     def getUserNum(self, username):
-        # for i in self.theList:
-        #     if(i.name == username):
-        #         return i.userID
-        # return -1
         if(username in self.theDictionary):
             return self.theDictionary[username].userID
 
@@ -89,9 +75,6 @@ class userList:
             return self.theDictionary[username].pos
 
     def getUserByName(self, username):
-        # for i in self.theList:
-        #     if(i.name == username):
-        #         return i
         if(username in self.theDictionary):
             return self.theDictionary[username]
 
@@ -122,11 +105,9 @@ class userList:
                 while(str[i] != "]"):
                     oneUser += str[i]
                     i += 1
-                #username, ID, x, y = oneUser.split(" ")
                 tempusr = user()
                 tempusr.fromString(oneUser)
                 self.addOrUpdateUser(tempusr)
-                #self.addUserWithPosition(username, int(ID), int(x), int(y))
             i += 1
                 
  

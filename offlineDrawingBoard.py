@@ -1,5 +1,6 @@
 import sys
 from position_class import position
+from offlineUser import user, userList
 class board:
     possibleUsers = ["^", "&", "%", "$"]
     anyUser = "@"
@@ -64,78 +65,54 @@ class board:
         self.theboard[self.userPosition.x][self.userPosition.y] = self.user
         return val
     
-    def boardToString(self):
-        string = ""
-        for i in range(self.height):
-            string += "["
-            #width one less time to not put a comma at the end
-            for j in range(self.width - 1):
-                #if(self.theboard[i][j] == self.user):
-                #    string += self.anyUser
-                #else:
-                string += self.theboard[i][j]
-                string += ","
-            string += self.theboard[i][self.width - 1]
-            string += "]"
-        return string
+    # def boardToString(self):
+    #     string = ""
+    #     for i in range(self.height):
+    #         string += "["
+    #         #width one less time to not put a comma at the end
+    #         for j in range(self.width - 1):
+    #             #if(self.theboard[i][j] == self.user):
+    #             #    string += self.anyUser
+    #             #else:
+    #             string += self.theboard[i][j]
+    #             string += ","
+    #         string += self.theboard[i][self.width - 1]
+    #         string += "]"
+    #     return string
 
-    def stringToBoard(self, str):
-        slen = len(str)
-        k = 0
-        for i in range(self.height):
-            for j in range(self.width):
-                #don't include the delimiting characters
-                while(str[k] == "[" or str[k] == " " or str[k] == "]"):
-                    k += 1
-                #deal with two users being on the same spot
-                if(str[k] == self.anyUser):
-                    self.theboard[i][j] = self.user
-                if(k == slen):
-                    return -1
-                self.theboard[i][j] = str[k]
-                k += 1
-        return 0
+    # def stringToBoard(self, str):
+    #     slen = len(str)
+    #     k = 0
+    #     for i in range(self.height):
+    #         for j in range(self.width):
+    #             #don't include the delimiting characters
+    #             while(str[k] == "[" or str[k] == " " or str[k] == "]"):
+    #                 k += 1
+    #             #deal with two users being on the same spot
+    #             if(str[k] == self.anyUser):
+    #                 self.theboard[i][j] = self.user
+    #             if(k == slen):
+    #                 return -1
+    #             self.theboard[i][j] = str[k]
+    #             k += 1
+    #     return 0
     
-    def addUserListToBoard(self, userList):
-        for i in range(self.height):
-            for j in range(self.width):
-                continue
-
-
     def update_user_token(self, user_token):
         self.user_token = user_token
 
-    # def mergeBoards(self, otherBoard):
-    #     if((self.height != otherBoard.height) or (self.width != otherBoard.width)):
-    #         return -1
-    #     for i in range(self.height):
-    #         for j in range(self.width):
-    #             if(self.hasUser(i, j)):
-    #                 if(self.sameBoard(otherBoard)):
-    #                     self.theboard[i][j] = otherBoard.theboard[i][j]
-    #             else:
-    #                 self.theboard[i][j] = otherBoard.theboard[i][j]
-    
-    # def hasUser(self, i, j):
-    #     for k in self.possibleUsers:
-    #         if(self.theboard[i][j] == k):
-    #             return True
-    #     return False
+    def updateBoardWithUserList(self, userList):
+        for key, value in userList.theDictionary.items():
+            self.updatePlayerPos(value.userID, value.pos)
 
-    # def findMyUser(self):
-    #     for i in range(self.height):
-    #         for j in range(self.width):
-    #             if(self.hasUser(i, j)):
-    #                 self.user = self.theboard[i][j]
-
-    # def sameBoard(self, otherBoard):
-    #     if(self.user == otherBoard.user):
-    #         return True
-    #     return False
-
-
-
-
+    def updatePlayerPos(self, playerID, newPos):
+        if(newPos.x >= self.height or newPos.x < 0):
+            return -1
+        if(newPos.y >= self.width or newPos.y < 0):
+            return -1
+        if(playID < self.possibleUsers.len()):
+            self.theboard[newPos.x][newPos.y] = self.possibleUsers[playerID]
+        else:
+            self.theboard[newPos.x][newPos.y] = self.anyUser
 
 
 

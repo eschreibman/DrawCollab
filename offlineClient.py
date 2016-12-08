@@ -189,26 +189,19 @@ def main(stdscr):
                         myUserList.stringToUserList(message_rec.message)
                         userInitialization(clientName, myUserList, canvas)
                         printBoardClient(canvas, stdscr)
-                        
-
-                    #if(message_rec.type == protocol_message.TYPE_CUR_BOARD):
-                            #server sent the master board
-                            # canvas.stringToBoard(message_rec.message)
-                            # printBoardClient(canvas, stdscr)
-
+                
                     if(message_rec.type == protocol_message.TYPE_SERVER_UPDATE_POS):
-                            #canvas.stringToBoard(message_rec.message)
-                            #printBoardClient(canvas, stdscr)
-                        # if(canvas.stringToBoardFromServer(message_rec.message) == -1):
-                        debugMsg("server updated", z, stdscr)
+                        myUserList.stringToUserList(message_rec.message)
+                        debugmsg = myUserList.listToString()
+                        printBoardClient(canvas, stdscr)
+                        debugMsg(debugmsg, z, stdscr)
                         z += 1
-                            #printBoardClient(canvas, stdscr)
                                     
         #get user input through the keyboard
         key = getInput(stdscr)
        
         if(key == ord("w") or key == ord("s") or key == ord("a") or key == ord("d") or key == curses.KEY_UP or key == curses.KEY_DOWN or key == curses.KEY_LEFT or key == curses.KEY_RIGHT):
-            #update our board and send it
+            #update our position and send it
             newPos = posDelta(key)
             canvas.moveUser(newPos)
             userSelf.pos = canvas.userPosition
