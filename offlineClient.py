@@ -32,7 +32,10 @@ def cursesInit():
     curses.curs_set(0)      
 
 def getInput(stdscr, userSelf):
-    char = stdscr.getch()
+    try:
+        char = stdscr.getch()
+    except KeyboardInterrupt:
+        shutdown_client("Quitting...goodbye!")
     if char == -1:
             return -1
     #q quits the program
@@ -54,7 +57,7 @@ def posDelta(dir):
 
 
 #print to the curses string all the board characters with spaces in between
-def printBoardClient(canvas, myUserList, stdscr):
+def printBoardClient(canvas, myUserList, userSelf, stdscr):
     canvas.clearBoard()
     canvas.updateBoardWithUserList(myUserList)
     k = 0; l = 0;
@@ -62,8 +65,11 @@ def printBoardClient(canvas, myUserList, stdscr):
         k = 0
         for j in range(canvas.width):
             if(canvas.theboard[i][j] == canvas.userIcon):
-                #mod by 4 because there are 4 possible color pairs
-                stdscr.addstr(l, k, canvas.theboard[i][j], curses.color_pair((canvas.userNum % 4) + 1))
+                if(i == userSelf.pos.x and j == userSelf.pos.y):
+                    #mod by 4 because there are 4 possible color pairs
+                    stdscr.addstr(l, k, canvas.theboard[i][j], curses.color_pair((canvas.userNum % 4) + 1))
+                else:
+                    stdscr.addstr(l, k, canvas.theboard[i][j])
             else:
                 stdscr.addstr(l, k, canvas.theboard[i][j])
             k += 2
@@ -75,12 +81,15 @@ def startScreen(stdscr):
     stdscr.addstr(2, 0, "No whitespace allowed", curses.color_pair(2))
     name = getUserInputedName(stdscr)
     stdscr.clear()
-    stdscr.addstr(0, 0, "Use 'wasd' or arrow keys to move. Press 'q' to quit.", curses.color_pair(2))
-    stdscr.addstr(1, 0, "Press any key to begin!", curses.color_pair(2))
+    stdscr.addstr(0, 0, "Use 'wasd' or arrow keys to move." , curses.color_pair(2))
+    stdscr.addstr(1, 0, "Press 'q' to quit. Press 'o' to simulate being offline" , curses.color_pair(2))
+    stdscr.addstr(2, 0, "Press any key to begin!", curses.color_pair(2))
+    
     while(stdscr.getch() == -1):
-            continue
+        continue
     stdscr.clear()
     return name
+    
 
 
 def getUserInputedName(stdscr):
@@ -107,7 +116,10 @@ def getUserInputedName(stdscr):
                     stdscr.addstr(3, i, chr(inpt), curses.color_pair(2))
                     usernameEntered += chr(inpt)
                     i += 1
-        inpt = stdscr.getch()
+        try:
+            inpt = stdscr.getch()
+        except KeyboardInterrupt:
+            shutdown_client("Quitting...goodbye!")
     return usernameEntered
 
 def userInitialization(clientName, myUserList, canvas):
@@ -129,6 +141,7 @@ def main(stdscr):
     global server 
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+    offline = False
     cursesInit()
     stdscr.nodelay(True)
     clientName = startScreen(stdscr)
@@ -155,7 +168,7 @@ def main(stdscr):
     while True:
         try:
             rlist, wlist, xlist = select.select([server], [], [], 0)
-        except socket.error:
+        except (socket.error, KeyboardInterrupt):
             exitmsg = "Select failed...quitting."
             shutdown_client(exitmsg)
         for item in rlist: 
@@ -172,17 +185,18 @@ def main(stdscr):
                         #populate the userlist with information from the server
                         myUserList.stringToUserList(message_rec.message)
                         userSelf = userInitialization(clientName, myUserList, canvas)
-                        printBoardClient(canvas, myUserList, stdscr)
+                        printBoardClient(canvas, myUserList, userSelf, stdscr)
 
                     if(message_rec.type == protocol_message.TYPE_WELCOME_BACK):
                         #populate the userlist with information from the server
                         myUserList.stringToUserList(message_rec.message)
                         userSelf = userInitialization(clientName, myUserList, canvas)
-                        printBoardClient(canvas, myUserList, stdscr)
+                        printBoardClient(canvas, myUserList, userSelf, stdscr)
                 
                     if(message_rec.type == protocol_message.TYPE_SERVER_UPDATE_POS):
-                        myUserList.stringToUserList(message_rec.message)
-                        printBoardClient(canvas, myUserList, stdscr)
+                        if(not offline):
+                            myUserList.stringToUserList(message_rec.message)
+                            printBoardClient(canvas, myUserList, userSelf, stdscr)
                                     
         #get user input through the keyboard
         key = getInput(stdscr, userSelf)
@@ -193,8 +207,14 @@ def main(stdscr):
             canvas.moveUser(newPos, userSelf)
             userSelf.pos = canvas.userPosition
             posToSend = userSelf.toString()
-            message_send = protocol_message(protocol_message.TYPE_CLIENT_UPDATE_POS, userSelf.userID, len(posToSend), posToSend)
-            server.send(message_send.collapsed())
+            if(not offline):
+                message_send = protocol_message(protocol_message.TYPE_CLIENT_UPDATE_POS, userSelf.userID, len(posToSend), posToSend)
+                server.send(message_send.collapsed())
+            else:
+                myUserList.updateUserPosition(userSelf, userSelf.pos.x, userSelf.pos.y)
+                printBoardClient(canvas, myUserList, userSelf, stdscr)
+        if(key == ord("o")):
+            offline = not offline
 
 #client is exiting gracefully so we can notify the server
 def exitWithServerMessage(userSelf):
