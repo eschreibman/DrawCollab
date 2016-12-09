@@ -22,8 +22,13 @@ In all the following cases the first step is to close any server that was previo
 
 
 ### Peer to peer mode
-To run server `python p2p_gameServer -p <port>`
-To run client `python p2p_gameClient -p <port>`
+To run server `python p2p_gameServer.py -p <port>`
+To run client `python p2p_gameClient.py -p <port>`
 
 ### Peer to Peer Mode Test Case
-Try starting up the server and connect a number of clients (should support at least 5), once all clients are connected on any one of these clients press the 'p' key to send everyone into peer to peer mode. At this point try stopping the server. The peers should continue to operate together.
+The peer to to peer mode exists to allow the users to exist independantly from the server. To run the peer to peer mode at least three users must be logged into the server. To test the peer to peer mode do the following:
+*Start the server running with the p2p_gameServer.py program
+*Connect at least three clients to the server
+*Once all clients are connected any client can initiate peer to peer mode by pressing 'p'
+*Once this has been done the server will put all clients in peer to peer mode
+*At this point the server can be closed and the peers with continue to operate together

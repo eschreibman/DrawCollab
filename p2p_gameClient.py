@@ -129,7 +129,6 @@ def main(stdscr):
                                         printBoardClient(canvas, stdscr)
 
                                 if(message_rec.type == protocol_message.TYPE_UPDATE_BOARD):
-                                        debugMsg("Updating board", z, stdscr)
                                         z += 1
                                         canvas.stringToBoardFromServer(message_rec.message)
                                         printBoardClient(canvas, stdscr)
@@ -140,8 +139,6 @@ def main(stdscr):
                                         if in_p2p_mode:
                                                 p2p_connection.forward_to_neighbors(message_rec)
                                 if(message_rec.type == protocol_message.TYPE_P2P_NOTE):
-                                        debugMsg("Peer to peer mode", 0, stdscr)
-                                        
                                         #in_p2p_mode = True
                                         p2p_connection = peer()
                                         server.send(p2p_connection.response_message().collapsed())
@@ -150,7 +147,6 @@ def main(stdscr):
                                         in_p2p_mode = True
                         else:
                                 dataRec = item.recv(1024)
-                                debugMsg("Recieved p2p message", 1, stdscr)
                                         
                 #get user input through the keyboard
                 key = getInput(stdscr)
