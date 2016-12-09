@@ -39,7 +39,7 @@ def printBoardClient(canvas, stdscr):
                 k = 0
                 for j in range(canvas.width):
                         if(canvas.theboard[i][j] == canvas.user):
-                                stdscr.addstr(l, k, canvas.theboard[i][j], curses.color_pair(canvas.userNum + 1))
+                                stdscr.addstr(l, k, canvas.theboard[i][j], curses.color_pair((canvas.userNum % 4) + 1))
                         else:
                                 stdscr.addstr(l, k, canvas.theboard[i][j])
                         k += 2

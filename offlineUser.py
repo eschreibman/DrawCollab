@@ -21,14 +21,11 @@ class user:
         self.pos = position
 
     def toString(self):
-        f = open('debuglog2', 'w')
         string = self.name
         string += " "
         string += str(self.userID)
         string += " "
         string += self.pos.toString()
-        f.write(string + "\n")
-        f.close()
         return string
 
     def fromString(self, string):
@@ -105,6 +102,11 @@ class userList:
         if(username in self.theDictionary):
             return self.theDictionary[username]
 
+    def getUserByID(self, ID):
+         for key, value in self.theDictionary.items():
+            if(ID == value.userID):
+                return value
+
     def updatePosByID(self, ID, pos):
         for key, value in self.theDictionary.items():
             if(ID == value.userID):
@@ -124,6 +126,7 @@ class userList:
         return string
 
     def stringToUserList(self, str):
+        self.theDictionary.clear()
         strlen = len(str)
         i = 0; val = 0;
         while(i < strlen):
@@ -145,6 +148,9 @@ class userList:
             print(values.name)
             print(str(values.userID))
             print(str(values.pos.toString()))
+
+    def removeUser(self, username):
+        self.theDictionary.pop(username, None)
                 
 
  

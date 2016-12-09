@@ -23,35 +23,34 @@ def getPort():
     return port
 
 def cursesInit():
-        #curses set up
-        curses.noecho()
-        curses.init_pair(1, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
-        curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-        curses.init_pair(4, curses.COLOR_BLUE, curses.COLOR_BLACK)
-        curses.curs_set(0)      
+    #curses set up
+    curses.noecho()
+    curses.init_pair(1, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+    curses.init_pair(4, curses.COLOR_RED, curses.COLOR_BLACK)
+    curses.curs_set(0)      
 
-def getInput(stdscr):
-        char = stdscr.getch()
-        if char == -1:
-                return -1
-        #q quits the program
-        if(char == ord("q")):
-                exitmsg = "Quitting...goodbye!"
-                shutdown_client(exitmsg)
-        return char
+def getInput(stdscr, userSelf):
+    char = stdscr.getch()
+    if char == -1:
+            return -1
+    #q quits the program
+    if(char == ord("q")):
+        exitWithServerMessage(userSelf)
+    return char
 
 def posDelta(dir):
-        p = position(0, 0)
-        if (dir == ord("w") or dir == curses.KEY_UP):
-                p.updatePos(-1, 0)
-        elif (dir == ord("s") or dir == curses.KEY_DOWN):
-                p.updatePos(1, 0)
-        elif (dir == ord("d") or dir == curses.KEY_RIGHT):
-                p.updatePos(0, 1)
-        elif (dir == ord("a") or dir == curses.KEY_LEFT):
-                p.updatePos(0, -1)
-        return p
+    p = position(0, 0)
+    if (dir == ord("w") or dir == curses.KEY_UP):
+        p.updatePos(-1, 0)
+    elif (dir == ord("s") or dir == curses.KEY_DOWN):
+        p.updatePos(1, 0)
+    elif (dir == ord("d") or dir == curses.KEY_RIGHT):
+        p.updatePos(0, 1)
+    elif (dir == ord("a") or dir == curses.KEY_LEFT):
+        p.updatePos(0, -1)
+    return p
 
 
 #print to the curses string all the board characters with spaces in between
@@ -62,8 +61,9 @@ def printBoardClient(canvas, myUserList, stdscr):
     for i in range(canvas.height):
         k = 0
         for j in range(canvas.width):
-            if(canvas.theboard[i][j] == canvas.user):
-                stdscr.addstr(l, k, canvas.theboard[i][j], curses.color_pair(canvas.userNum + 1))
+            if(canvas.theboard[i][j] == canvas.userIcon):
+                #mod by 4 because there are 4 possible color pairs
+                stdscr.addstr(l, k, canvas.theboard[i][j], curses.color_pair((canvas.userNum % 4) + 1))
             else:
                 stdscr.addstr(l, k, canvas.theboard[i][j])
             k += 2
@@ -77,7 +77,7 @@ def startScreen(stdscr):
     stdscr.clear()
     stdscr.addstr(0, 0, "Use 'wasd' or arrow keys to move. Press 'q' to quit.", curses.color_pair(2))
     stdscr.addstr(1, 0, "Press any key to begin!", curses.color_pair(2))
-    while(getInput(stdscr) == -1):
+    while(stdscr.getch() == -1):
             continue
     stdscr.clear()
     return name
@@ -122,6 +122,7 @@ def userInitialization(clientName, myUserList, canvas):
 def main(stdscr):
     global z
     z = 0 #DEBUG
+    global maxColorNum
     port = getPort()
 
     #server setup
@@ -146,8 +147,6 @@ def main(stdscr):
     except (socket.error, OverflowError):
         exitmsg = "Unable to connect to port " + str(port) + "...quitting."
         shutdown_client(exitmsg)
-        
-     
     
     #send new user message, sends the username and 0 as the id
     dataSend = protocol_message(protocol_message.TYPE_USER_JOIN, 0, len(clientName), clientName)
@@ -182,29 +181,36 @@ def main(stdscr):
                         printBoardClient(canvas, myUserList, stdscr)
                 
                     if(message_rec.type == protocol_message.TYPE_SERVER_UPDATE_POS):
-                        val = myUserList.stringToUserList(message_rec.message)
+                        myUserList.stringToUserList(message_rec.message)
                         printBoardClient(canvas, myUserList, stdscr)
                                     
         #get user input through the keyboard
-        key = getInput(stdscr)
+        key = getInput(stdscr, userSelf)
        
         if(key == ord("w") or key == ord("s") or key == ord("a") or key == ord("d") or key == curses.KEY_UP or key == curses.KEY_DOWN or key == curses.KEY_LEFT or key == curses.KEY_RIGHT):
             #update our position and send it
             newPos = posDelta(key)
-            canvas.moveUser(newPos)
+            canvas.moveUser(newPos, userSelf)
             userSelf.pos = canvas.userPosition
             posToSend = userSelf.toString()
             message_send = protocol_message(protocol_message.TYPE_CLIENT_UPDATE_POS, userSelf.userID, len(posToSend), posToSend)
             server.send(message_send.collapsed())
 
+#client is exiting gracefully so we can notify the server
+def exitWithServerMessage(userSelf):
+    message_send = protocol_message(protocol_message.TYPE_CLIENT_EXIT, userSelf.userID, 0, str(0))
+    server.send(message_send.collapsed())
+    shutdown_client("Quitting...goodbye!")
+
+
 def shutdown_client(exitMessage):
-        curses.echo()  
-        curses.nocbreak()                                                                          
-        curses.endwin()
-        #close the socket connected to the server
-        server.close()
-        print exitMessage
-        exit()
+    curses.echo()  
+    curses.nocbreak()                                                                          
+    curses.endwin()
+    #close the socket connected to the server
+    server.close()
+    print exitMessage
+    exit()
 
 def debugMsg(str, stdscr):
     global z

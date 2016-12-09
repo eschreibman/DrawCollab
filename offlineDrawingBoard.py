@@ -19,10 +19,10 @@ class board:
         self.userNum = userNum
         self.userName = userName
         if(userNum < len(self.possibleUsers)):
-            self.user = self.possibleUsers[userNum]
+            self.userIcon = self.possibleUsers[userNum]
         else:
-            self.user = self.anyUser
-        self.theboard[self.userPosition.x][self.userPosition.y] = self.user
+            self.userIcon = self.anyUser
+        self.theboard[self.userPosition.x][self.userPosition.y] = self.userIcon
         
     def clearBoard(self):
         self.theboard = [[self.emptySpace for x in range(self.width)] for y in range(self.width)]
@@ -30,7 +30,7 @@ class board:
     def addUserServer(self):
         #called by server
         self.userNum = -1
-        self.user = self.anyUser
+        self.userIcon = self.anyUser
 
     def printBoard(self):
         for i in range(self.height):
@@ -40,10 +40,9 @@ class board:
         print
 
     #change self.userPosition and wrap around if needed, based on board size
-    def moveUser(self, dir):
+    def moveUser(self, dir, user):
         val = 0
-        oldPosX = self.userPosition.x
-        oldPosY = self.userPosition.y
+        self.userPosition = user.pos
         #update user position
         self.userPosition.x += dir.x
         self.userPosition.y += dir.y

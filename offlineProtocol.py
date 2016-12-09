@@ -6,6 +6,7 @@ class protocol_message:
         TYPE_USER_JOIN = 3
         TYPE_CLIENT_UPDATE_POS = 4
         TYPE_SERVER_UPDATE_POS = 5
+        TYPE_CLIENT_EXIT = 6
         SERVER = 0
 
         SENTINEL = -1

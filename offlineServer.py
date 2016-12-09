@@ -31,6 +31,7 @@ def main():
 
     client_info_list = []
     masterClientList = userList()
+    offlineClientList = userList()
     num_users = 0
 
     while True:
@@ -59,9 +60,12 @@ def main():
                     username = message_rec.message
                     print "user " + username + " joined"
                     #have we seen this client before
-                    if(masterClientList.userExists(username)):
+                    if(offlineClientList.userExists(username)):
                         print "welcome back " + username + " with ID " + str(masterClientList.getUserNum(username))
+                        masterClientList.addOrUpdateUser(offlineClientList.getUserByName(username))
+                        offlineClientList.removeUser(username)
                         dataSend = masterClientList.listToString()
+                        print "master list: " + dataSend
                         message_send = protocol_message(protocol_message.TYPE_WELCOME_BACK, protocol_message.SERVER, len(dataSend), dataSend)
                     else:
                         print "never before seen client " + username + "...assigned ID " + str(num_users)
@@ -69,6 +73,7 @@ def main():
                         masterClientList.addUserDefault(username, num_users)
                         num_users += 1
                         dataSend = masterClientList.listToString()
+                        print "master list: " + dataSend
                         message_send = protocol_message(protocol_message.TYPE_WELCOME_NEW, protocol_message.SERVER, len(dataSend), dataSend)
 
                     clientInList.send(message_send.collapsed())
@@ -80,12 +85,22 @@ def main():
                     masterClientList.addOrUpdateUser(msgFromUser)
                     #now send the updated client list out
                     dataSend = masterClientList.listToString()
+                    print "master list: " + dataSend
                     message_send = protocol_message(protocol_message.TYPE_SERVER_UPDATE_POS, protocol_message.SERVER, len(dataSend), dataSend)
                     notify_all_clients(clients, message_send)
 
                 if(message_rec.type == protocol_message.SENTINEL):
                     print "Client left"
                     clients.remove(clientInList)
+
+                if(message_rec.type == protocol_message.TYPE_CLIENT_EXIT):
+                    tempusr = user()
+                    tempusr = masterClientList.getUserByID(message_rec.user)
+                    print "Client " + tempusr.name + " left gracefully"
+                    offlineClientList.addOrUpdateUser(tempusr)
+                    masterClientList.removeUser(tempusr.name)
+                    clients.remove(clientInList)
+
     clientInList.close()
     server.close()
 
