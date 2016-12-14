@@ -8,8 +8,9 @@ Our original concept for this assignment was for a drawing collaboration applica
 ## Modules
 
 ### Offline Mode
-To run server 'python offlineServer.py -p <port>'
-To run client 'python offlineClient.py -p <port>'
+To run server 'python Server.py -p <port> -o'
+To run client 'python Client.py -p <port> -o'
+You may need to run 'pip install py-getch' to run the client
 
 ### Offline Mode Test Case
 The “offline mode” was created to mimic the way that current online collaboration documents allow you to keep track of your state of changes even if you exit the program. Additionally, when you come back into the program you begin where you last left off and if changes by other users happened while you were offline they are now shown. Some ways to use this mode/test cases are:
@@ -22,12 +23,12 @@ In all the following cases the first step is to close any server that was previo
 
 
 ### Peer to peer mode
-To run server `python p2p_gameServer.py -p <port>`
-To run client `python p2p_gameClient.py -p <port>`
+To run server 'python Server.py -p <port> -P'
+To run client 'python Client.py -p <port> -P'
 
 ### Peer to Peer Mode Test Case
 The peer to to peer mode exists to allow the users to exist independantly from the server. To run the peer to peer mode at least three users must be logged into the server. To test the peer to peer mode do the following:
-*Start the server running with the p2p_gameServer.py program
+*Start the server running with the Server.py program with the -P flag
 *Connect at least three clients to the server
 *Once all clients are connected any client can initiate peer to peer mode by pressing 'p'
 *Once this has been done the server will put all clients in peer to peer mode

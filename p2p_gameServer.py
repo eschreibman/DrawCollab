@@ -15,17 +15,17 @@ def usage():
     print "-p PORT_NUMBER, port to run server on (defaults to 9071)"
 
 
-def main():
-    port = 9071
+def runP2P(portNum):
+    port = portNum
         
-    try:
-        options, args = getopt.getopt(sys.argv[1:], 'p:')
-        port_selection = filter(lambda x: "-p" in x, options)
-        if len(port_selection) > 0:
-            port = int(port_selection[0][1])
-    except (getopt.GetoptError, IndexError):
-        usage()
-        exit()
+    # try:
+    #     options, args = getopt.getopt(sys.argv[1:], 'p:')
+    #     port_selection = filter(lambda x: "-p" in x, options)
+    #     if len(port_selection) > 0:
+    #         port = int(port_selection[0][1])
+    # except (getopt.GetoptError, IndexError):
+    #     usage()
+    #     exit()
 
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     print 'Socket created'
@@ -104,5 +104,5 @@ def main():
 
 
 
-#when the program is run, call the above "main" function
-if __name__ == "__main__": main()
+# #when the program is run, call the above "main" function
+# if __name__ == "__main__": main()

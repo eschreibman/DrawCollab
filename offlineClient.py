@@ -6,21 +6,7 @@ import curses
 import random
 
 #have to do pip install py-getch
-#run program either python gameClient.py or pythong gameClient.py -p portnum
-#where portnum is the port number you wish to use (the server must use the same port number)
 
-
-def getPort():
-    port = 9071
-    try:
-        options, args = getopt.getopt(sys.argv[1:], 'p:')
-        port_selection = filter(lambda x: "-p" in x, options)
-        if len(port_selection) > 0:
-            port = (int(port_selection[0][1]))
-    except (getopt.GetoptError, IndexError):
-        print "-p PORT_NUMBER, port to run server on (defaults to 9071)"
-        exit()
-    return port
 
 def cursesInit():
     #curses set up
@@ -60,6 +46,7 @@ def posDelta(dir):
 def printBoardClient(canvas, myUserList, userSelf, stdscr):
     canvas.clearBoard()
     canvas.updateBoardWithUserList(myUserList)
+    canvas.updatePlayerPos(userSelf.userID, userSelf.pos)
     k = 0; l = 0;
     for i in range(canvas.height):
         k = 0
@@ -131,11 +118,11 @@ def userInitialization(clientName, myUserList, canvas):
     return userSelf
 
         
-def main(stdscr):
+def main(stdscr, portNum):
     global z
     z = 0 #DEBUG
     global maxColorNum
-    port = getPort()
+    port = portNum
 
     #server setup
     global server 
@@ -242,7 +229,5 @@ def debugMsg(str, stdscr):
         stdscr.addstr(j, i, str[i])
     z += 1
 
-#when the program is run, call the above "main" function
-if __name__ == "__main__":
-        curses.wrapper(main)
-
+def runOffline(portNum):
+    curses.wrapper(main, portNum)

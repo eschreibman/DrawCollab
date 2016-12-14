@@ -61,6 +61,8 @@ class board:
         self.user_token = user_token
 
     def updateBoardWithUserList(self, userList):
+        #take a userlist and for each user in the list
+        #add their position to the board
         i = 0
         for key, value in userList.theDictionary.items():
             i += 1

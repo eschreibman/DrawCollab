@@ -53,8 +53,8 @@ def startScreen(canvas, stdscr):
                 continue
         stdscr.clear()
 
-def usage():
-    print "-p PORT_NUMBER, port to run server on (defaults to 9071)"
+# def usage():
+#     print "-p PORT_NUMBER, port to run server on (defaults to 9071)"
         
 def debugMsg(str, offset, stdscr):
         j = (offset % 10) + 8
@@ -64,20 +64,20 @@ def debugMsg(str, offset, stdscr):
                         return
                 stdscr.addstr(j, i, str[i])
 
-def main(stdscr):
+def main(stdscr, portNum):
         
-        port = 9071
+        port = portNum
 
         in_p2p_mode = False
         
-        try:
-                options, args = getopt.getopt(sys.argv[1:], 'p:')
-                port_selection = filter(lambda x: "-p" in x, options)
-                if len(port_selection) > 0:
-                        port = int(port_selection[0][1])
-        except (getopt.GetoptError, IndexError):
-                usage()
-                return()
+        # try:
+        #         options, args = getopt.getopt(sys.argv[1:], 'p:')
+        #         port_selection = filter(lambda x: "-p" in x, options)
+        #         if len(port_selection) > 0:
+        #                 port = int(port_selection[0][1])
+        # except (getopt.GetoptError, IndexError):
+        #         usage()
+        #         return()
         
         #curses set up
         curses.noecho()
@@ -189,7 +189,10 @@ def shutdown_client():
         curses.nocbreak()                                                                          
         curses.endwin()
 
+def runP2P(portNum):
+    curses.wrapper(main, portNum)
+
 #when the program is run, call the above "main" function
-if __name__ == "__main__":
-        curses.wrapper(main)
+# if __name__ == "__main__":
+#         curses.wrapper(main)
 

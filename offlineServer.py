@@ -15,8 +15,9 @@ def usage():
     print "-p PORT_NUMBER, port to run server on (defaults to 9071)"
 
 
-def main():
-    port = getPort()
+def runOffline(portNum):
+    port = portNum
+    #port = getPort()
     #socket setup
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
@@ -85,7 +86,7 @@ def main():
                     masterClientList.addOrUpdateUser(msgFromUser)
                     #now send the updated client list out
                     dataSend = masterClientList.listToString()
-                    print "master list: " + dataSend
+                    #print "master list: " + dataSend
                     message_send = protocol_message(protocol_message.TYPE_SERVER_UPDATE_POS, protocol_message.SERVER, len(dataSend), dataSend)
                     notify_all_clients(clients, message_send)
 
@@ -119,5 +120,5 @@ def getPort():
     return port
 
 
-#when the program is run, call the above "main" function
-if __name__ == "__main__": main()
+# #when the program is run, call the above "main" function
+# if __name__ == "__main__": main()
